@@ -8,6 +8,7 @@
   <!-- ========== 引入地图库 Leaflet（本地文件，断网也能用） ========== -->
   <link rel="stylesheet" href="leaflet.css" />
   <script src="leaflet.js"></script>
+  <script src="config.js"></script>
 
   <style>
     /* ============================================
@@ -46,6 +47,38 @@
       font-size: 24px;
     }
 
+    /* ===== 搜索栏 ===== */
+    .search-box {
+      display: flex;
+      flex: 1;
+      max-width: 360px;
+      margin-left: auto;
+      gap: 4px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      min-width: 0;
+    }
+    .search-box button {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .search-box button:hover {
+      background: rgba(255,255,255,0.35);
+    }
+
     /* ===== 中间主体：地图 + 侧边栏 ===== */
     .main-container {
       display: flex;
@@ -78,6 +111,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    /* ☰ 按钮：默认隐藏（宽屏），窄屏显示 */
+    .hamburger-btn {
+      display: none;
+    }
+    /* 遮罩层：默认隐藏 */
+    .overlay {
+      display: none;
+    }
+    /* 关闭按钮：宽屏下隐藏，窄屏显示 */
+    .sidebar-close-btn {
+      display: none;
     }
 
     .sidebar-header .count {
@@ -233,16 +279,90 @@
 
     /* ===== 移动端适配：手机上看 ===== */
     @media (max-width: 600px) {
+      /* 搜索栏变窄 */
+      .search-box {
+        max-width: 160px;
+      }
+      .search-box input {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+      .search-box button {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+      /* 主容器恢复默认布局，地图占满 */
       .main-container {
-        flex-direction: column;  /* 手机上地图和列表上下排 */
+        position: relative;
       }
       #map {
-        height: 55%;              /* 上面是地图 */
-        flex: none;
+        flex: 1;
+        min-height: 0;
       }
+
+      /* 侧边栏变成从右侧滑入的覆盖层 */
       .sidebar {
-        width: 100%;
-        height: 45%;              /* 下面是列表 */
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 85%;
+        height: 100%;
+        z-index: 600;
+        transform: translateX(100%);   /* 默认藏在屏幕右边外面 */
+        transition: transform 0.3s ease;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+      }
+      .sidebar.open {
+        transform: translateX(0);       /* 展开：滑入 */
+      }
+
+      /* 侧边栏里的关闭按钮（窄屏才显示） */
+      .sidebar-close-btn {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        padding: 0 4px;
+        color: #666;
+      }
+
+      /* ☰ 按钮：地图右上角 */
+      .hamburger-btn {
+        display: flex;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 500;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: white;
+        border: 1px solid #ddd;
+        font-size: 22px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .hamburger-btn.hidden {
+        display: none;                 /* 侧边栏展开后隐藏按钮 */
+      }
+
+      /* 遮罩层 */
+      .overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 550;
+      }
+      .overlay.show {
+        display: block;
       }
     }
   </style>
@@ -254,19 +374,32 @@
   <div class="header">
     <span class="icon">🛵</span>
     骑手地图
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="搜索地址…" onkeydown="if(event.key==='Enter')searchAddress()">
+      <button onclick="searchAddress()">🔍</button>
+    </div>
   </div>
 
   <!-- ===== 主体 ===== -->
   <div class="main-container">
 
+    <!-- 手机版：☰ 按钮 -->
+    <button class="hamburger-btn" id="hamburger-btn" onclick="openSidebar()">☰</button>
+
+    <!-- 遮罩层（点击关闭侧边栏） -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
     <!-- 地图容器 -->
     <div id="map"></div>
 
-    <!-- 右侧面板 -->
-    <div class="sidebar">
+    <!-- 右侧面板 / 手机版变成滑入覆盖层 -->
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         📍 已标记的小区
-        <span class="count" id="marker-count">0</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="count" id="marker-count">0</span>
+          <button class="sidebar-close-btn" onclick="closeSidebar()" title="关闭">✕</button>
+        </div>
       </div>
       <div class="sidebar-tip">
         💡 点击地图上的位置添加标记
@@ -314,10 +447,6 @@
       if (!typeSelect || !noteTextarea) return;
       const type = typeSelect.value;
       const note = noteTextarea.value.trim();
-      if (!note) {
-        alert('请填写备注描述，不然不知道这个小区什么情况~');
-        return;
-      }
       if (pendingMarker) pendingMarker.remove();
       if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, type, note });
       pendingMarker = null;
@@ -355,7 +484,7 @@
             <option value="no-entry">🚫 完全不让骑车进</option>
             <option value="can-walk">🚶 可以步行进入</option>
           </select>
-          <label>备注描述（必填）</label>
+          <label>备注描述（选填）</label>
           <textarea id="popup-note" placeholder="例如：北门步行3分钟到5号楼&#10;或者：所有门都不让进，必须电话联系客户下来拿"></textarea>
           <div class="btn-row">
             <button class="btn-cancel" onclick="cancelPendingMarker()">取消</button>
@@ -524,12 +653,150 @@
       return `${month}月${day}日 ${hours}:${minutes}`;
     }
 
-    // ---------- 第七步：页面启动 ----------
+    // ---------- 第七步：地址搜索（高德地图，国内秒开） ----------
+
+    function searchAddress() {
+      const input = document.getElementById('search-input');
+      const query = input.value.trim();
+      if (!query) {
+        alert('请先输入一个地址');
+        return;
+      }
+
+      // 兜底：如果 config.js 没加载（比如换电脑了），提示用户
+      if (typeof AMAP_KEY === 'undefined') {
+        alert('缺少高德 API Key，请在项目里创建 config.js 文件。\n\n内容参考 config.example.js，把 Key 填进去即可。');
+        return;
+      }
+
+      const btn = document.querySelector('.search-box button');
+      const origText = btn.textContent;
+      btn.textContent = '⏳';
+      btn.disabled = true;
+
+      // 高德地图 POI 搜索（国内最稳定，免费，不限量）
+      var url = 'https://restapi.amap.com/v3/place/text?key=' + AMAP_KEY
+        + '&keywords=' + encodeURIComponent(query)
+        + '&city=上海'
+        + '&offset=5'
+        + '&extensions=all';
+
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          btn.textContent = origText;
+          btn.disabled = false;
+
+          if (data.status !== '1' || !data.pois || data.pois.length === 0) {
+            alert('没搜到「' + query + '」，换个关键词试试');
+            return;
+          }
+
+          // 转换高德格式：location 是 "lng,lat" 字符串
+          var results = data.pois.map(function(poi) {
+            var parts = poi.location.split(',');
+            return {
+              lat: parseFloat(parts[1]),
+              lon: parseFloat(parts[0]),
+              display_name: poi.name + (poi.address ? ' —— ' + poi.address : '')
+            };
+          });
+
+          if (results.length === 1) {
+            goToResult(results[0]);
+          } else {
+            showSearchResults(results);
+          }
+        })
+        .catch(function(err) {
+          btn.textContent = origText;
+          btn.disabled = false;
+          alert('搜索失败，请检查网络后重试');
+          console.error('搜索错误：', err);
+        });
+    }
+
+    function goToResult(item) {
+      const lat = parseFloat(item.lat);
+      const lng = parseFloat(item.lon);
+      const name = item.display_name;
+
+      // 飞过去
+      map.flyTo([lat, lng], 16, { duration: 0.8 });
+
+      // 画一个临时的蓝色圆圈标记搜索结果
+      if (window._searchCircle) map.removeLayer(window._searchCircle);
+      window._searchCircle = L.circle([lat, lng], {
+        radius: 80,
+        color: '#2196F3',
+        fillColor: '#2196F3',
+        fillOpacity: 0.3,
+        weight: 3
+      }).addTo(map);
+
+      // 弹一个简要信息
+      L.popup()
+        .setLatLng([lat, lng])
+        .setContent('<div style="max-width:250px;"><strong>🔍 搜索结果</strong><p style="margin-top:4px;font-size:12px;color:#555;">' + escapeHtml(name) + '</p></div>')
+        .openOn(map);
+
+      // 清空输入框
+      document.getElementById('search-input').value = '';
+    }
+
+    function showSearchResults(results) {
+      // 多个结果时，让用户选择
+      var html = '<div style="max-width:300px;"><strong>🔍 搜到 ' + results.length + ' 个结果，点一个：</strong><ul style="margin-top:6px;padding-left:18px;max-height:200px;overflow-y:auto;">';
+      results.forEach(function(item, i) {
+        html += '<li style="margin-bottom:6px;cursor:pointer;color:#2196F3;font-size:12px;" onclick="window._pickResult(' + i + ')">' + escapeHtml(item.display_name) + '</li>';
+      });
+      html += '</ul></div>';
+
+      // 存下结果，供选择
+      window._searchResults = results;
+      window._pickResult = function(i) {
+        map.closePopup();
+        goToResult(window._searchResults[i]);
+        window._searchResults = null;
+      };
+
+      // 在地图中央弹出选择列表
+      var center = map.getCenter();
+      L.popup()
+        .setLatLng(center)
+        .setContent(html)
+        .openOn(map);
+
+      document.getElementById('search-input').value = '';
+    }
+
+    // ---------- 第九步：页面启动 ----------
 
     // 页面打开时，加载已有标记
     renderMapMarkers();
     renderMarkerList();
     updateCount();
+
+    // ---------- 第十步：手机端侧边栏开关 ----------
+
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('show');
+      document.getElementById('hamburger-btn').classList.add('hidden');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('hamburger-btn').classList.remove('hidden');
+    }
+
+    // 点列表里的标记后自动关闭侧边栏（手机端才有这个体验）
+    const origFlyToMarker = flyToMarker;
+    flyToMarker = function(index) {
+      origFlyToMarker(index);
+      closeSidebar();
+    };
 
     // 在控制台打个招呼（按 F12 可以看到）
     console.log('🛵 骑手地图已就绪！');

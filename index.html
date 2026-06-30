@@ -32,19 +32,29 @@
 
     /* ===== 顶部标题栏 ===== */
     .header {
-      background: #ff6b00;    /* 饿了么橙 + 美团黄之间，骑手色 */
+      background: #ff6b00;
       color: white;
       padding: 12px 20px;
       font-size: 20px;
       font-weight: bold;
       display: flex;
       align-items: center;
+      justify-content: center;  /* 标题和搜索栏整体居中 */
       gap: 8px;
-      z-index: 1000;          /* 确保标题栏在地图上方 */
+      position: relative;
+      z-index: 1000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     .header .icon {
       font-size: 24px;
+    }
+    /* 标题文字在左边，搜索栏在中间 */
+    .header-title {
+      position: absolute;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     /* ===== 搜索栏 ===== */
@@ -52,7 +62,6 @@
       display: flex;
       flex: 1;
       max-width: 360px;
-      margin-left: auto;
       gap: 4px;
     }
     .search-box input {
@@ -279,16 +288,25 @@
 
     /* ===== 移动端适配：手机上看 ===== */
     @media (max-width: 600px) {
-      /* 搜索栏变窄 */
+      /* 标题只保留图标，省空间 */
+      .header-title {
+        position: static;
+        font-size: 0;
+      }
+      .header-title .icon {
+        font-size: 24px;
+      }
+      /* 搜索栏靠右 */
       .search-box {
         max-width: 160px;
+        margin-left: auto;
       }
       .search-box input {
-        font-size: 12px;
+        font-size: 16px;          /* 16px 防止 iOS 自动放大 */
         padding: 4px 8px;
       }
       .search-box button {
-        font-size: 12px;
+        font-size: 14px;
         padding: 4px 8px;
       }
       /* 主容器恢复默认布局，地图占满 */
@@ -372,8 +390,10 @@
 
   <!-- ===== 顶部标题 ===== -->
   <div class="header">
-    <span class="icon">🛵</span>
-    骑手地图
+    <span class="header-title">
+      <span class="icon">🛵</span>
+      骑手地图
+    </span>
     <div class="search-box">
       <input type="text" id="search-input" placeholder="搜索地址…" onkeydown="if(event.key==='Enter')searchAddress()">
       <button onclick="searchAddress()">🔍</button>

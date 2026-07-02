@@ -99,6 +99,38 @@
     #map {
       flex: 1;                /* 占据大部分宽度 */
       min-height: 400px;
+      position: relative;
+    }
+
+    /* ===== 定位按钮 ===== */
+    .locate-btn {
+      display: flex;
+      position: absolute;
+      bottom: 20px;
+      right: 12px;
+      z-index: 500;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid #ddd;
+      font-size: 20px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .locate-btn:active {
+      background: #f0f0f0;
+      transform: scale(0.95);
+    }
+    .locate-btn.locating {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+      50% { box-shadow: 0 2px 20px rgba(33,150,243,0.6); }
     }
 
     /* ===== 右侧边栏 ===== */
@@ -193,6 +225,26 @@
     .sidebar-search input:focus {
       border-color: #ff6b00;
     }
+    .toolbar-actions {
+      padding: 0 10px 8px;
+      display: flex;
+      gap: 6px;
+    }
+    .clear-all-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-all-btn:hover {
+      background: #ffe0e0;
+      color: #e74c3c;
+      border-color: #e74c3c;
+    }
 
     /* ===== 标记列表 ===== */
     .marker-list {
@@ -215,18 +267,53 @@
     .marker-card {
       background: white;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       margin-bottom: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      cursor: pointer;
       border-left: 4px solid #ff6b00;
       transition: all 0.2s;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
     }
     .marker-card:hover {
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       transform: translateX(2px);
     }
     /* 卡片左边框颜色由 JS 根据标签动态设定 */
+
+    /* 多选复选框 */
+    .card-checkbox {
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .card-checkbox input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #ff6b00;
+    }
+    .card-body {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    /* 批量操作栏 */
+    .batch-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: #fff3e0;
+      border-top: 1px solid #ffe0b2;
+      gap: 8px;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
 
     .marker-card .loc-name {
       font-size: 14px;
@@ -282,8 +369,63 @@
       font-family: inherit;
     }
     .popup-form textarea {
-      resize: vertical;       /* 只允许上下拉 */
+      resize: vertical;
       min-height: 60px;
+    }
+
+    /* 标签预设栏 */
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      padding: 2px 6px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .preset-chip:hover {
+      background: #ff6b00;
+      color: white;
+    }
+    .preset-chip.selected {
+      background: #ff6b00;
+      color: white;
+      font-weight: bold;
+    }
+    .preset-chip.selected .preset-del {
+      color: rgba(255,255,255,0.7);
+    }
+      font-size: 12px;
+      padding: 0 2px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      line-height: 1;
+      color: #999;
+    }
+    .preset-chip:hover .preset-del {
+      color: white;
+    }
+    .preset-add-btn {
+      font-size: 11px;
+      padding: 2px 8px;
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+      color: #999;
+    }
+    .preset-add-btn:hover {
+      border-color: #ff6b00;
+      color: #ff6b00;
     }
     .popup-form .btn-row {
       display: flex;
@@ -438,7 +580,10 @@
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <!-- 地图容器 -->
-    <div id="map"></div>
+    <div id="map">
+      <!-- 定位按钮 -->
+      <button class="locate-btn" id="locate-btn" onclick="locateMe()" title="定位到当前位置">◎</button>
+    </div>
 
     <!-- 右侧面板 / 手机版变成滑入覆盖层 -->
     <div class="sidebar" id="sidebar">
@@ -456,13 +601,19 @@
           <!-- 动态生成筛选按钮 -->
         </div>
         <div class="sidebar-search">
-          <input type="text" id="list-search" placeholder="🔍 搜索地点、标签或备注…" oninput="renderMarkerList()">
+          <input type="text" id="list-search" placeholder="🔍 搜索地点、标签或备注…" oninput="selectedMarkers.clear();renderMarkerList()">
+        </div>
+        <div class="toolbar-actions" id="toolbar-actions">
+          <button class="clear-all-btn" onclick="deleteFilteredMarkers()">🗑 清空当前</button>
         </div>
       </div>
 
       <div class="marker-list" id="marker-list">
         <!-- 标记卡片会动态插入到这里 -->
       </div>
+
+      <!-- 批量操作栏 -->
+      <div class="batch-actions" id="batch-actions" style="display:none;"></div>
     </div>
 
   </div>
@@ -475,20 +626,125 @@
 
     // ---------- 第一步：初始化地图 ----------
 
-    const map = L.map('map').setView([31.23, 121.47], 12);  // 默认定位上海 (31.23, 121.47)，缩放级别12
+    const map = L.map('map').setView([31.23, 121.47], 12);
 
     // 使用高德地图的底图（国内加载快，无需注册）
     L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-      subdomains: ['1', '2', '3', '4'],  // 四个子域名分流，加载更快
+      subdomains: ['1', '2', '3', '4'],
       attribution: '&copy; 高德地图',
       maxZoom: 18
     }).addTo(map);
+
+    // 页面打开时自动定位到当前位置
+    autoLocateOnStart();
+
+    function autoLocateOnStart() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { duration: 1 });
+          // 画个蓝点标记当前位置
+          L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+            radius: 10,
+            color: '#2196F3',
+            fillColor: '#2196F3',
+            fillOpacity: 0.6,
+            weight: 3
+          }).addTo(map).bindPopup('<b>📍 你在这里</b>');
+        },
+        function() {
+          // 定位失败不做任何事，用默认视图
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    // 点击定位按钮
+    function locateMe() {
+      var btn = document.getElementById('locate-btn');
+      if (!navigator.geolocation) {
+        alert('你的设备不支持定位');
+        return;
+      }
+      btn.classList.add('locating');
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          btn.classList.remove('locating');
+          map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, { duration: 1 });
+          L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+            radius: 10,
+            color: '#2196F3',
+            fillColor: '#2196F3',
+            fillOpacity: 0.6,
+            weight: 3
+          }).addTo(map).bindPopup('<b>📍 你在这里</b>').openPopup();
+        },
+        function(err) {
+          btn.classList.remove('locating');
+          alert('定位失败，请检查定位权限是否开启');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
 
     // ---------- 第二步：准备数据 ----------
 
     // 从 localStorage 读取已保存的标记
     // 如果第一次用，给一个空数组 []
     let markers = JSON.parse(localStorage.getItem('rider-markers') || '[]');
+
+    // 标签预设：从 localStorage 读取，首次使用给默认值
+    const DEFAULT_TAGS = ['无法骑车', '有电梯', '需门禁卡', '可骑车进入', '需打电话', '步行上楼'];
+    let tagPresets = JSON.parse(localStorage.getItem('rider-tag-presets') || JSON.stringify(DEFAULT_TAGS));
+
+    function saveTagPresets() {
+      localStorage.setItem('rider-tag-presets', JSON.stringify(tagPresets));
+      refreshPresetUI();
+    }
+
+    // 点击预设芯片 → 切换选中/取消
+    function toggleChip(chip) {
+      chip.classList.toggle('selected');
+    }
+
+    function removeTagPreset(index, ev) {
+      if (ev) ev.stopPropagation();
+      tagPresets.splice(index, 1);
+      saveTagPresets();
+    }
+
+    function addTagPreset() {
+      var newTag = prompt('输入新预设标签名：');
+      if (!newTag) return;
+      newTag = newTag.trim();
+      if (!newTag) return;
+      if (tagPresets.indexOf(newTag) >= 0) {
+        alert('「' + newTag + '」已存在');
+        return;
+      }
+      tagPresets.push(newTag);
+      saveTagPresets();
+    }
+
+    // 刷新弹窗中的预设 UI（datalist + 芯片栏）
+    function refreshPresetUI() {
+      var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
+      var dl = document.getElementById('tag-list');
+      if (dl) {
+        dl.innerHTML = tagPresets.map(function(t) {
+          return '<option value="' + escapeHtml(t) + '">';
+        }).join('');
+      }
+      var bar = document.getElementById('preset-bar');
+      if (bar) {
+        bar.innerHTML = tagPresets.map(function(t, i) {
+          return '<span class="preset-chip" onclick="pickPreset(\'' + esc(t) + '\')">' + escapeHtml(t)
+            + '<button class="preset-del" onclick="event.stopPropagation();removeTagPreset(' + i + ')" title="删除">×</button>'
+            + '</span>';
+        }).join('')
+        + '<button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋</button>';
+      }
+    }
 
     // ---------- 第三步：在页面上显示一个标记的弹窗 ----------
 
@@ -497,19 +753,40 @@
     let pendingCallback = null;
     let pendingLocationName = '';
 
+    // 暂存当前选中的标签
+    let pendingTags = [];
+
     // 保存按钮被点击（由弹窗里按钮直接调用）
     function savePendingMarker() {
-      const tagInput = document.getElementById('popup-tag');
-      const noteTextarea = document.getElementById('popup-note');
-      if (!tagInput || !noteTextarea) return;
-      const tag = tagInput.value.trim() || '未分类';
-      const note = noteTextarea.value.trim();
-      const locName = pendingLocationName || '未知位置';
+      var noteTextarea = document.getElementById('popup-note');
+      if (!noteTextarea) return;
+      // 收集所有选中的标签
+      var tags = [];
+      var selectedChips = document.querySelectorAll('.preset-chip.selected');
+      selectedChips.forEach(function(chip) {
+        tags.push(chip.getAttribute('data-tag'));
+      });
+      // 也检查自定义输入
+      var customInput = document.getElementById('popup-tag-custom');
+      if (customInput && customInput.value.trim()) {
+        var customTag = customInput.value.trim();
+        if (tags.indexOf(customTag) === -1) tags.push(customTag);
+        // 新标签自动加入预设
+        if (tagPresets.indexOf(customTag) === -1) {
+          tagPresets.push(customTag);
+          saveTagPresets();
+        }
+      }
+      if (tags.length === 0) tags = ['未分类'];
+
+      var note = noteTextarea.value.trim();
+      var locName = pendingLocationName || '未知位置';
       if (pendingMarker) pendingMarker.remove();
-      if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, tag: tag, note: note, locationName: locName });
+      if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, tags: tags, note: note, locationName: locName });
       pendingMarker = null;
       pendingCallback = null;
       pendingLocationName = '';
+      pendingTags = [];
     }
 
     // 取消按钮被点击
@@ -537,22 +814,24 @@
       }).addTo(map);
 
       // 构建弹窗内容
+      var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
+      var tagChipsHtml = tagPresets.map(function(t, i) {
+        return '<span class="preset-chip" data-tag="' + esc(t) + '" onclick="toggleChip(this)">' + escapeHtml(t)
+          + '<button class="preset-del" onclick="event.stopPropagation();removeTagPreset(' + i + ')" title="从预设删除">×</button>'
+          + '</span>';
+      }).join('');
+
       const popupContent = `
         <div class="popup-form">
           <strong style="font-size:15px;">📍 标记这个地点</strong>
           <div id="popup-location" style="background:#f0f7ff;border-radius:4px;padding:6px 10px;margin-top:8px;font-size:13px;color:#2196F3;">
             ⏳ 正在识别位置…
           </div>
-          <label>标签（输入或选择）</label>
-          <input type="text" id="popup-tag" list="tag-list" placeholder="如：无法骑车、有电梯、需门禁…" autocomplete="off">
-          <datalist id="tag-list">
-            <option value="无法骑车">
-            <option value="有电梯">
-            <option value="需门禁卡">
-            <option value="可骑车进入">
-            <option value="需打电话">
-            <option value="步行上楼">
-          </datalist>
+          <label>标签（可多选，点击切换）</label>
+          <div class="preset-bar" id="preset-bar">${tagChipsHtml}
+            <input type="text" id="popup-tag-custom" placeholder="自定义…" style="font-size:11px;padding:2px 6px;border:1px dashed #ccc;border-radius:10px;width:70px;outline:none;" autocomplete="off">
+            <button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋</button>
+          </div>
           <label>备注描述（选填）</label>
           <textarea id="popup-note" placeholder="例如：北门有电梯，步行3分钟到5号楼&#10;或者：所有门都无法骑车，必须电话联系客户"></textarea>
           <div class="btn-row">
@@ -583,17 +862,23 @@
 
     // ---------- 第四步：保存和渲染标记 ----------
 
-    // 兼容函数：旧数据用 type，新数据用 tag
-    function getTag(m) {
-      if (m.tag) return m.tag;
-      // 旧数据转换
-      if (m.type === 'no-entry') return '无法骑车';
-      if (m.type === 'can-walk') return '有电梯';
-      return '未分类';
+    // 兼容函数：旧数据用 type/tag，新数据用 tags 数组
+    function getTags(m) {
+      if (m.tags && m.tags.length > 0) return m.tags;
+      if (m.tag) return [m.tag];
+      if (m.type === 'no-entry') return ['无法骑车'];
+      if (m.type === 'can-walk') return ['有电梯'];
+      return ['未分类'];
+    }
+    function getFirstTag(m) {
+      var tags = getTags(m);
+      return tags.length > 0 ? tags[0] : '未分类';
     }
 
-    // 当前选中的标签筛选（空 = 全部）
-    let activeTagFilter = '';
+    // 当前选中的标签筛选（空集合 = 全部）
+    let activeTagFilters = new Set();
+    // 多选删除：选中的标记索引集合
+    let selectedMarkers = new Set();
 
     // 保存所有标记到 localStorage
     function saveMarkers() {
@@ -614,9 +899,9 @@
 
       // 重新画标记
       markers.forEach(function(markerData, index) {
-        const tag = getTag(markerData);
+        const tag = getFirstTag(markerData);
         // 根据标签内容选颜色
-        var color = '#f39c12';  // 默认橙
+        var color = '#f39c12';
         if (tag.indexOf('无法') >= 0 || tag.indexOf('不让') >= 0) color = '#e74c3c';
         else if (tag.indexOf('电梯') >= 0) color = '#27ae60';
         else if (tag.indexOf('门禁') >= 0) color = '#8e44ad';
@@ -651,10 +936,14 @@
         const popupLocName = markerData.locationName
           ? '<div style="font-weight:bold;font-size:14px;margin-bottom:4px;">📍 ' + escapeHtml(markerData.locationName) + '</div>'
           : '';
+        var allTags = getTags(markerData);
+        var popupTagsHtml = allTags.map(function(t) {
+          return '<span style="display:inline-block;font-size:11px;padding:2px 6px;border-radius:3px;margin-right:3px;margin-bottom:4px;background:#ffe0e0;color:#c0392b;">' + escapeHtml(t) + '</span>';
+        }).join('');
         marker.bindPopup(`
           <div style="min-width:180px;">
             ${popupLocName}
-            <span class="tag-card" style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:3px;margin-bottom:4px;background:#ffe0e0;color:#c0392b;">${escapeHtml(tag)}</span>
+            <div>${popupTagsHtml}</div>
             <p style="margin-top:6px;color:#333;">${escapeHtml(markerData.note)}</p>
             <small style="color:#999;">${formatTime(markerData.time)}</small>
             <br>
@@ -676,14 +965,16 @@
       // 第一步：收集所有标签 + 构建筛选按钮
       var allTags = {};
       markers.forEach(function(m) {
-        var t = getTag(m);
-        allTags[t] = (allTags[t] || 0) + 1;
+        getTags(m).forEach(function(t) {
+          allTags[t] = (allTags[t] || 0) + 1;
+        });
       });
       var tagNames = Object.keys(allTags).sort();
 
-      var filterHtml = '<button class="tag-filter-btn' + (activeTagFilter === '' ? ' active' : '') + '" onclick="setTagFilter(\'\')">全部 (' + markers.length + ')</button>';
+      var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
+      var filterHtml = '<button class="tag-filter-btn' + (activeTagFilters.size === 0 ? ' active' : '') + '" onclick="clearTagFilters()">全部 (' + markers.length + ')</button>';
       tagNames.forEach(function(t) {
-        filterHtml += '<button class="tag-filter-btn' + (activeTagFilter === t ? ' active' : '') + '" onclick="setTagFilter(\'' + escapeHtml(t).replace(/'/g, "\\'") + '\')">' + escapeHtml(t) + ' (' + allTags[t] + ')</button>';
+        filterHtml += '<button class="tag-filter-btn' + (activeTagFilters.has(t) ? ' active' : '') + '" onclick="toggleTagFilter(\'' + esc(t) + '\')">' + escapeHtml(t) + ' (' + allTags[t] + ')</button>';
       });
       document.getElementById('tag-filters').innerHTML = filterHtml;
 
@@ -695,10 +986,10 @@
 
       var filtered = [...markers].reverse();  // 按时间倒序
 
-      // 标签筛选
-      if (activeTagFilter) {
+      // 标签筛选（多选：任意标签匹配就显示）
+      if (activeTagFilters.size > 0) {
         filtered = filtered.filter(function(m) {
-          return getTag(m) === activeTagFilter;
+          return getTags(m).some(function(t) { return activeTagFilters.has(t); });
         });
       }
 
@@ -706,11 +997,14 @@
       if (keyword) {
         filtered = filtered.filter(function(m) {
           var loc = (m.locationName || '').toLowerCase();
-          var tag = getTag(m).toLowerCase();
+          var tagsStr = getTags(m).join(' ').toLowerCase();
           var note = (m.note || '').toLowerCase();
-          return loc.indexOf(keyword) >= 0 || tag.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
+          return loc.indexOf(keyword) >= 0 || tagsStr.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
         });
       }
+
+      // 控制清空按钮显隐
+      document.getElementById('toolbar-actions').style.display = markers.length === 0 ? 'none' : '';
 
       // 第三步：渲染卡片
       if (filtered.length === 0) {
@@ -719,35 +1013,125 @@
       }
 
       listEl.innerHTML = filtered.map(function(markerData) {
-        var realIndex = markers.indexOf(markerData);  // 在原始数组里的位置
-        var tag = getTag(markerData);
+        var realIndex = markers.indexOf(markerData);
+        var tags = getTags(markerData);
+        var checked = selectedMarkers.has(realIndex) ? 'checked' : '';
 
-        // 选颜色
+        var firstTag = tags[0] || '未分类';
         var borderColor = '#ff6b00';
-        if (tag.indexOf('无法') >= 0 || tag.indexOf('不让') >= 0) borderColor = '#e74c3c';
-        else if (tag.indexOf('电梯') >= 0) borderColor = '#27ae60';
-        else if (tag.indexOf('门禁') >= 0) borderColor = '#8e44ad';
-        else if (tag.indexOf('电话') >= 0) borderColor = '#2980b9';
+        if (firstTag.indexOf('无法') >= 0 || firstTag.indexOf('不让') >= 0) borderColor = '#e74c3c';
+        else if (firstTag.indexOf('电梯') >= 0) borderColor = '#27ae60';
+        else if (firstTag.indexOf('门禁') >= 0) borderColor = '#8e44ad';
+        else if (firstTag.indexOf('电话') >= 0) borderColor = '#2980b9';
+
+        var tagsHtml = tags.map(function(t) {
+          return '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#ffe0e0;color:#c0392b;">' + escapeHtml(t) + '</span>';
+        }).join('');
 
         var locName = markerData.locationName
           ? '<div class="loc-name">📍 ' + escapeHtml(markerData.locationName) + '</div>'
           : '';
 
         return `
-          <div class="marker-card" style="border-left-color:${borderColor}" onclick="flyToMarker(${realIndex})">
-            <button class="delete-btn" onclick="event.stopPropagation(); deleteMarkerByIndex(${realIndex})" title="删除">×</button>
-            ${locName}
-            <span class="tag-card" style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:3px;margin-bottom:4px;background:#ffe0e0;color:#c0392b;">${escapeHtml(tag)}</span>
-            <div class="note">${escapeHtml(markerData.note)}</div>
-            <div class="time">${formatTime(markerData.time)}</div>
+          <div class="marker-card" style="border-left-color:${borderColor}">
+            <label class="card-checkbox" onclick="event.stopPropagation()">
+              <input type="checkbox" ${checked} onchange="toggleSelectMarker(${realIndex}, this.checked)">
+            </label>
+            <div class="card-body" onclick="flyToMarker(${realIndex})">
+              <button class="delete-btn" onclick="event.stopPropagation(); deleteMarkerByIndex(${realIndex})" title="删除">×</button>
+              ${locName}
+              <div style="margin-bottom:4px;">${tagsHtml}</div>
+              <div class="note">${escapeHtml(markerData.note)}</div>
+              <div class="time">${formatTime(markerData.time)}</div>
+            </div>
           </div>
         `;
       }).join('');
+
+      // 批量删除栏
+      var actionBar = document.getElementById('batch-actions');
+      if (actionBar) {
+        if (selectedMarkers.size > 0) {
+          actionBar.style.display = 'flex';
+          actionBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedMarkers.size + ' 项</span>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedMarkers()">🗑 删除选中</button>';
+        } else {
+          actionBar.style.display = 'none';
+        }
+      }
     }
 
-    function setTagFilter(tag) {
-      activeTagFilter = tag;
+    function toggleSelectMarker(index, checked) {
+      if (checked) {
+        selectedMarkers.add(index);
+      } else {
+        selectedMarkers.delete(index);
+      }
+      renderMarkerList();  // 刷新以更新 actionBar
+    }
+
+    function deleteSelectedMarkers() {
+      if (selectedMarkers.size === 0) return;
+      if (!confirm('确定要删除选中的 ' + selectedMarkers.size + ' 个标记吗？\n\n此操作不可恢复！')) return;
+      // 按索引从大到小删除，避免索引错位
+      var sorted = Array.from(selectedMarkers).sort(function(a, b) { return b - a; });
+      sorted.forEach(function(i) { markers.splice(i, 1); });
+      selectedMarkers.clear();
+      saveMarkers();
+    }
+
+    function toggleTagFilter(tag) {
+      if (activeTagFilters.has(tag)) {
+        activeTagFilters.delete(tag);
+      } else {
+        activeTagFilters.add(tag);
+      }
+      selectedMarkers.clear();
       renderMarkerList();
+    }
+
+    function clearTagFilters() {
+      activeTagFilters.clear();
+      selectedMarkers.clear();
+      renderMarkerList();
+    }
+
+
+    // 获取当前筛选后的标记列表
+    function getFilteredMarkers() {
+      var keyword = (document.getElementById('list-search') || {}).value || '';
+      keyword = keyword.trim().toLowerCase();
+      var filtered = [...markers].reverse();
+      if (activeTagFilters.size > 0) {
+        filtered = filtered.filter(function(m) {
+          return getTags(m).some(function(t) { return activeTagFilters.has(t); });
+        });
+      }
+      if (keyword) {
+        filtered = filtered.filter(function(m) {
+          var loc = (m.locationName || '').toLowerCase();
+          var tagsStr = getTags(m).join(' ').toLowerCase();
+          var note = (m.note || '').toLowerCase();
+          return loc.indexOf(keyword) >= 0 || tagsStr.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
+        });
+      }
+      return filtered;
+    }
+
+    function deleteFilteredMarkers() {
+      var filtered = getFilteredMarkers();
+      if (filtered.length === 0) return;
+      var msg = activeTagFilters.size > 0 || (document.getElementById('list-search')||{}).value
+        ? '确定要删除当前筛选出的 ' + filtered.length + ' 个标记吗？\n\n此操作不可恢复！'
+        : '确定要删除全部 ' + filtered.length + ' 个标记吗？\n\n此操作不可恢复！';
+      if (!confirm(msg)) return;
+      // 从 markers 中移除这些标记
+      var removeSet = new Set(filtered);
+      markers = markers.filter(function(m) { return !removeSet.has(m); });
+      activeTagFilters.clear();
+      var si = document.getElementById('list-search');
+      if (si) si.value = '';
+      saveMarkers();
     }
 
     // ---------- 第五步：交互操作 ----------
@@ -782,7 +1166,8 @@
     // 删除标记
     function deleteMarkerByIndex(index) {
       if (confirm('确定要删除这个标记吗？')) {
-        markers.splice(index, 1);  // 数组删掉这一项
+        markers.splice(index, 1);
+        selectedMarkers.clear();
         saveMarkers();
       }
     }

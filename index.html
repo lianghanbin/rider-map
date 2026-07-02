@@ -152,6 +152,48 @@
       text-align: center;
     }
 
+    /* ===== 侧边栏工具栏：筛选 + 搜索 ===== */
+    .sidebar-toolbar {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+    }
+    .tag-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 8px 10px 4px;
+    }
+    .tag-filter-btn {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      background: #f5f5f5;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tag-filter-btn.active {
+      background: #ff6b00;
+      color: white;
+      border-color: #ff6b00;
+    }
+    .sidebar-search {
+      padding: 4px 10px 8px;
+    }
+    .sidebar-search input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .sidebar-search input:focus {
+      border-color: #ff6b00;
+    }
+
     /* ===== 标记列表 ===== */
     .marker-list {
       flex: 1;
@@ -184,29 +226,14 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       transform: translateX(2px);
     }
-    .marker-card.no-entry {
-      border-left-color: #e74c3c;   /* 红色 = 完全不让进 */
-    }
-    .marker-card.can-walk {
-      border-left-color: #f39c12;   /* 橙色 = 可以步行进 */
-    }
+    /* 卡片左边框颜色由 JS 根据标签动态设定 */
 
-    .marker-card .tag {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 3px;
-      margin-bottom: 6px;
+    .marker-card .loc-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 4px;
     }
-    .tag.no-entry {
-      background: #ffe0e0;
-      color: #c0392b;
-    }
-    .tag.can-walk {
-      background: #fef3e0;
-      color: #d68910;
-    }
-
     .marker-card .note {
       font-size: 14px;
       color: #333;
@@ -245,6 +272,7 @@
       margin-bottom: 3px;
     }
     .popup-form select,
+    .popup-form input[type="text"],
     .popup-form textarea {
       width: 100%;
       padding: 6px 8px;
@@ -288,17 +316,17 @@
 
     /* ===== 移动端适配：手机上看 ===== */
     @media (max-width: 600px) {
-      /* 标题只保留图标，省空间 */
+      /* 标题缩小，给搜索框让空间 */
       .header-title {
         position: static;
-        font-size: 0;
+        font-size: 14px;
       }
       .header-title .icon {
-        font-size: 24px;
+        font-size: 20px;
       }
-      /* 搜索栏靠右 */
+      /* 搜索栏缩小并靠右 */
       .search-box {
-        max-width: 160px;
+        max-width: 140px;
         margin-left: auto;
       }
       .search-box input {
@@ -415,15 +443,23 @@
     <!-- 右侧面板 / 手机版变成滑入覆盖层 -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        📍 已标记的小区
+        📍 已标记的地点
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="count" id="marker-count">0</span>
           <button class="sidebar-close-btn" onclick="closeSidebar()" title="关闭">✕</button>
         </div>
       </div>
-      <div class="sidebar-tip">
-        💡 点击地图上的位置添加标记
+
+      <!-- 标签筛选 + 关键词搜索 -->
+      <div class="sidebar-toolbar">
+        <div class="tag-filters" id="tag-filters">
+          <!-- 动态生成筛选按钮 -->
+        </div>
+        <div class="sidebar-search">
+          <input type="text" id="list-search" placeholder="🔍 搜索地点、标签或备注…" oninput="renderMarkerList()">
+        </div>
       </div>
+
       <div class="marker-list" id="marker-list">
         <!-- 标记卡片会动态插入到这里 -->
       </div>
@@ -459,18 +495,21 @@
     // 暂存当前正在编辑的标记（让按钮能访问到）
     let pendingMarker = null;
     let pendingCallback = null;
+    let pendingLocationName = '';
 
     // 保存按钮被点击（由弹窗里按钮直接调用）
     function savePendingMarker() {
-      const typeSelect = document.getElementById('popup-type');
+      const tagInput = document.getElementById('popup-tag');
       const noteTextarea = document.getElementById('popup-note');
-      if (!typeSelect || !noteTextarea) return;
-      const type = typeSelect.value;
+      if (!tagInput || !noteTextarea) return;
+      const tag = tagInput.value.trim() || '未分类';
       const note = noteTextarea.value.trim();
+      const locName = pendingLocationName || '未知位置';
       if (pendingMarker) pendingMarker.remove();
-      if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, type, note });
+      if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, tag: tag, note: note, locationName: locName });
       pendingMarker = null;
       pendingCallback = null;
+      pendingLocationName = '';
     }
 
     // 取消按钮被点击
@@ -478,6 +517,7 @@
       if (pendingMarker) pendingMarker.remove();
       pendingMarker = null;
       pendingCallback = null;
+      pendingLocationName = '';
     }
 
     // 弹出标记表单，让用户填写信息
@@ -485,27 +525,36 @@
       // 先移除之前残留的
       if (pendingMarker) pendingMarker.remove();
 
-      // 存下位置和回调，供按钮调用
+      // 暂存位置和回调
       pendingCallback = callback;
       pendingCallback.lat = lat;
       pendingCallback.lng = lng;
+      pendingLocationName = '';
 
       // 创建一个临时标记
       pendingMarker = L.marker([lat, lng], {
         draggable: false
       }).addTo(map);
 
-      // 构建弹窗内容 —— 按钮直接用 onclick 调用全局函数，不依赖事件绑定
+      // 构建弹窗内容
       const popupContent = `
         <div class="popup-form">
-          <strong style="font-size:15px;">📍 标记这个小区</strong>
-          <label>情况分类</label>
-          <select id="popup-type">
-            <option value="no-entry">🚫 完全不让骑车进</option>
-            <option value="can-walk">🚶 可以步行进入</option>
-          </select>
+          <strong style="font-size:15px;">📍 标记这个地点</strong>
+          <div id="popup-location" style="background:#f0f7ff;border-radius:4px;padding:6px 10px;margin-top:8px;font-size:13px;color:#2196F3;">
+            ⏳ 正在识别位置…
+          </div>
+          <label>标签（输入或选择）</label>
+          <input type="text" id="popup-tag" list="tag-list" placeholder="如：无法骑车、有电梯、需门禁…" autocomplete="off">
+          <datalist id="tag-list">
+            <option value="无法骑车">
+            <option value="有电梯">
+            <option value="需门禁卡">
+            <option value="可骑车进入">
+            <option value="需打电话">
+            <option value="步行上楼">
+          </datalist>
           <label>备注描述（选填）</label>
-          <textarea id="popup-note" placeholder="例如：北门步行3分钟到5号楼&#10;或者：所有门都不让进，必须电话联系客户下来拿"></textarea>
+          <textarea id="popup-note" placeholder="例如：北门有电梯，步行3分钟到5号楼&#10;或者：所有门都无法骑车，必须电话联系客户"></textarea>
           <div class="btn-row">
             <button class="btn-cancel" onclick="cancelPendingMarker()">取消</button>
             <button class="btn-save" onclick="savePendingMarker()">✅ 保存标记</button>
@@ -517,9 +566,34 @@
         closeButton: false,
         closeOnClick: false
       }).openPopup();
+
+      // 异步获取位置名，拿到后更新弹窗（setTimeout 确保 DOM 已就绪）
+      fetchLocationName(lat, lng, function(name) {
+        pendingLocationName = name;
+        setTimeout(function() {
+          var locEl = document.getElementById('popup-location');
+          if (locEl) {
+            locEl.innerHTML = '📍 ' + escapeHtml(name);
+            locEl.style.color = '#333';
+            locEl.style.background = '#e8f5e9';
+          }
+        }, 0);
+      });
     }
 
     // ---------- 第四步：保存和渲染标记 ----------
+
+    // 兼容函数：旧数据用 type，新数据用 tag
+    function getTag(m) {
+      if (m.tag) return m.tag;
+      // 旧数据转换
+      if (m.type === 'no-entry') return '无法骑车';
+      if (m.type === 'can-walk') return '有电梯';
+      return '未分类';
+    }
+
+    // 当前选中的标签筛选（空 = 全部）
+    let activeTagFilter = '';
 
     // 保存所有标记到 localStorage
     function saveMarkers() {
@@ -540,8 +614,14 @@
 
       // 重新画标记
       markers.forEach(function(markerData, index) {
-        // 选颜色：红 = 不让进，橙 = 可步行
-        const color = markerData.type === 'no-entry' ? '#e74c3c' : '#f39c12';
+        const tag = getTag(markerData);
+        // 根据标签内容选颜色
+        var color = '#f39c12';  // 默认橙
+        if (tag.indexOf('无法') >= 0 || tag.indexOf('不让') >= 0) color = '#e74c3c';
+        else if (tag.indexOf('电梯') >= 0) color = '#27ae60';
+        else if (tag.indexOf('门禁') >= 0) color = '#8e44ad';
+        else if (tag.indexOf('电话') >= 0) color = '#2980b9';
+        var iconEmoji = tag.length > 3 ? tag.substring(0, 2) : tag;
 
         // 自定义标记图标
         const icon = L.divIcon({
@@ -554,23 +634,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 11px;
             border: 3px solid white;
             box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-          ">${markerData.type === 'no-entry' ? '🚫' : '🚶'}</div>`,
-          className: '',            // 清掉默认样式
+            overflow: hidden;
+          ">${escapeHtml(iconEmoji)}</div>`,
+          className: '',
           iconSize: [28, 28],
-          iconAnchor: [14, 28],      // 标记指向的位置（底部尖尖）
-          popupAnchor: [0, -30]      // 弹窗在标记上方弹出
+          iconAnchor: [14, 28],
+          popupAnchor: [0, -30]
         });
 
         const marker = L.marker([markerData.lat, markerData.lng], { icon: icon }).addTo(map);
 
         // 点击标记显示信息
-        const typeLabel = markerData.type === 'no-entry' ? '🚫 完全不让骑车进' : '🚶 可以步行进入';
+        const popupLocName = markerData.locationName
+          ? '<div style="font-weight:bold;font-size:14px;margin-bottom:4px;">📍 ' + escapeHtml(markerData.locationName) + '</div>'
+          : '';
         marker.bindPopup(`
           <div style="min-width:180px;">
-            <strong>${typeLabel}</strong>
+            ${popupLocName}
+            <span class="tag-card" style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:3px;margin-bottom:4px;background:#ffe0e0;color:#c0392b;">${escapeHtml(tag)}</span>
             <p style="margin-top:6px;color:#333;">${escapeHtml(markerData.note)}</p>
             <small style="color:#999;">${formatTime(markerData.time)}</small>
             <br>
@@ -586,30 +670,84 @@
     // 在侧边栏渲染标记列表
     function renderMarkerList() {
       const listEl = document.getElementById('marker-list');
+      const searchInput = document.getElementById('list-search');
+      const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+      // 第一步：收集所有标签 + 构建筛选按钮
+      var allTags = {};
+      markers.forEach(function(m) {
+        var t = getTag(m);
+        allTags[t] = (allTags[t] || 0) + 1;
+      });
+      var tagNames = Object.keys(allTags).sort();
+
+      var filterHtml = '<button class="tag-filter-btn' + (activeTagFilter === '' ? ' active' : '') + '" onclick="setTagFilter(\'\')">全部 (' + markers.length + ')</button>';
+      tagNames.forEach(function(t) {
+        filterHtml += '<button class="tag-filter-btn' + (activeTagFilter === t ? ' active' : '') + '" onclick="setTagFilter(\'' + escapeHtml(t).replace(/'/g, "\\'") + '\')">' + escapeHtml(t) + ' (' + allTags[t] + ')</button>';
+      });
+      document.getElementById('tag-filters').innerHTML = filterHtml;
+
+      // 第二步：筛选 + 搜索
       if (markers.length === 0) {
         listEl.innerHTML = '';
         return;
       }
 
-      // 按时间倒序排列（最新的在最上面）
-      const sorted = [...markers].reverse();
+      var filtered = [...markers].reverse();  // 按时间倒序
 
-      listEl.innerHTML = sorted.map(function(markerData, displayIndex) {
-        const realIndex = markers.length - 1 - displayIndex;  // 找到原始索引
-        const typeLabel = markerData.type === 'no-entry'
-          ? '<span class="tag no-entry">🚫 不让进</span>'
-          : '<span class="tag can-walk">🚶 可步行</span>';
-        const cardClass = markerData.type === 'no-entry' ? 'no-entry' : 'can-walk';
+      // 标签筛选
+      if (activeTagFilter) {
+        filtered = filtered.filter(function(m) {
+          return getTag(m) === activeTagFilter;
+        });
+      }
+
+      // 关键词搜索（搜地名、标签、备注）
+      if (keyword) {
+        filtered = filtered.filter(function(m) {
+          var loc = (m.locationName || '').toLowerCase();
+          var tag = getTag(m).toLowerCase();
+          var note = (m.note || '').toLowerCase();
+          return loc.indexOf(keyword) >= 0 || tag.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
+        });
+      }
+
+      // 第三步：渲染卡片
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 16px;font-size:14px;">没有匹配的结果</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(function(markerData) {
+        var realIndex = markers.indexOf(markerData);  // 在原始数组里的位置
+        var tag = getTag(markerData);
+
+        // 选颜色
+        var borderColor = '#ff6b00';
+        if (tag.indexOf('无法') >= 0 || tag.indexOf('不让') >= 0) borderColor = '#e74c3c';
+        else if (tag.indexOf('电梯') >= 0) borderColor = '#27ae60';
+        else if (tag.indexOf('门禁') >= 0) borderColor = '#8e44ad';
+        else if (tag.indexOf('电话') >= 0) borderColor = '#2980b9';
+
+        var locName = markerData.locationName
+          ? '<div class="loc-name">📍 ' + escapeHtml(markerData.locationName) + '</div>'
+          : '';
 
         return `
-          <div class="marker-card ${cardClass}" onclick="flyToMarker(${realIndex})">
+          <div class="marker-card" style="border-left-color:${borderColor}" onclick="flyToMarker(${realIndex})">
             <button class="delete-btn" onclick="event.stopPropagation(); deleteMarkerByIndex(${realIndex})" title="删除">×</button>
-            ${typeLabel}
+            ${locName}
+            <span class="tag-card" style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:3px;margin-bottom:4px;background:#ffe0e0;color:#c0392b;">${escapeHtml(tag)}</span>
             <div class="note">${escapeHtml(markerData.note)}</div>
             <div class="time">${formatTime(markerData.time)}</div>
           </div>
         `;
       }).join('');
+    }
+
+    function setTagFilter(tag) {
+      activeTagFilter = tag;
+      renderMarkerList();
     }
 
     // ---------- 第五步：交互操作 ----------
@@ -790,6 +928,66 @@
       document.getElementById('search-input').value = '';
     }
 
+    // ---------- 第八步：逆地理编码（经纬度 → 位置名称） ----------
+
+    function fetchLocationName(lat, lng, callback) {
+      // 新逻辑：优先周边搜索（直接取地图上显示的地名）
+      // 搜索半径从小到大，越近越准
+      var urlAround = 'https://restapi.amap.com/v3/place/around?key=' + AMAP_KEY
+        + '&location=' + lng + ',' + lat
+        + '&radius=200&offset=5&output=json';
+
+      fetch(urlAround)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.status === '1' && data.pois && data.pois.length > 0) {
+            // 取最近的一个，高德按距离排序
+            callback(data.pois[0].name);
+            return;
+          }
+          // 周边没结果，用逆地理兜底
+          fallbackRegeo(lat, lng, callback);
+        })
+        .catch(function() {
+          fallbackRegeo(lat, lng, callback);
+        });
+    }
+
+    function fallbackRegeo(lat, lng, callback) {
+      var url = 'https://restapi.amap.com/v3/geocode/regeo?key=' + AMAP_KEY
+        + '&location=' + lng + ',' + lat
+        + '&extensions=all&radius=500';
+
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          var name = '';
+          if (data.status === '1' && data.regeocode) {
+            var c = data.regeocode.addressComponent;
+            // 小区名
+            if (c.neighborhood && typeof c.neighborhood === 'object' && c.neighborhood.name) {
+              name = c.neighborhood.name;
+            }
+            // 建筑名
+            if (!name && c.building && typeof c.building === 'object' && c.building.name) {
+              name = c.building.name;
+            }
+            // 街道门牌
+            if (!name && c.streetNumber && c.streetNumber.street) {
+              name = c.streetNumber.street + (c.streetNumber.number || '');
+            }
+            // 区+街道
+            if (!name) {
+              name = (c.district || '') + (c.township || '');
+            }
+          }
+          callback(name || '未知位置');
+        })
+        .catch(function() {
+          callback('未知位置');
+        });
+    }
+
     // ---------- 第九步：页面启动 ----------
 
     // 页面打开时，加载已有标记
@@ -797,7 +995,7 @@
     renderMarkerList();
     updateCount();
 
-    // ---------- 第十步：手机端侧边栏开关 ----------
+    // ---------- 第十一步：手机端侧边栏开关 ----------
 
     function openSidebar() {
       document.getElementById('sidebar').classList.add('open');

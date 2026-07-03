@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -20,29 +20,23 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 生成 config.js
+      - name: 生成 config.js（从 Secret 注入 Key）
         run: |
           if [ -n "$AMAP_KEY" ]; then
             echo "var AMAP_KEY = '$AMAP_KEY';" > config.js
-            echo "config.js 已从 Secret 生成"
-          elif [ -f config.example.js ]; then
-            cp config.example.js config.js
-            echo "config.js 从模板复制（需手动填 Key）"
           else
-            echo "var AMAP_KEY = '';" > config.js
-            echo "警告：未设置 AMAP_KEY"
+            cp config.example.js config.js 2>/dev/null || echo "var AMAP_KEY = '';" > config.js
           fi
         env:
           AMAP_KEY: ${{ secrets.AMAP_KEY }}
 
-      - name: 上传部署产物
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: .
 
-      - name: 部署到 GitHub Pages
+      - uses: actions/deploy-pages@v4
         id: deployment
-        uses: actions/deploy-pages@v4

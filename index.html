@@ -9,6 +9,13 @@
   <link rel="stylesheet" href="leaflet.css" />
   <script src="leaflet.js"></script>
   <script src="config.js"></script>
+  <script>
+    // 兜底：如果 config.js 没加载（部署环境），给个提示但不影响使用
+    if (typeof AMAP_KEY === 'undefined') {
+      var AMAP_KEY = '';
+      console.warn('config.js 未加载，搜索功能将不可用');
+    }
+  </script>
 
   <style>
     /* ============================================

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>骑手地图</title>
 
   <!-- ========== 引入地图库 Leaflet（本地文件，断网也能用） ========== -->
@@ -597,8 +597,13 @@
         max-width: 200px;
       }
       .search-box input {
-        font-size: 16px;          /* 16px 防止 iOS 自动放大 */
+        font-size: 16px;
         padding: 4px 8px;
+      }
+      .popup-form textarea,
+      .popup-form input,
+      .popup-form select {
+        font-size: 16px !important;  /* 防止 iOS 自动放大 */
       }
       .search-box button {
         font-size: 14px;

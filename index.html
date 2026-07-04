@@ -52,17 +52,6 @@
       z-index: 1000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    .header .icon {
-      font-size: 24px;
-    }
-    /* 标题文字在左边，搜索栏在中间 */
-    .header-title {
-      position: absolute;
-      left: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
 
     /* ===== 搜索栏 ===== */
     .search-box {
@@ -70,6 +59,40 @@
       flex: 1;
       max-width: 360px;
       gap: 4px;
+      position: relative;
+    }
+    .search-suggestions {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 2000;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 2px;
+    }
+    .search-suggestions.show {
+      display: block;
+    }
+    .search-suggestions .sug-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #333;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .search-suggestions .sug-item:hover,
+    .search-suggestions .sug-item.active {
+      background: #fff3e0;
+    }
+    .search-suggestions .sug-item .sug-district {
+      font-size: 11px;
+      color: #999;
+      margin-left: 6px;
     }
     .search-box input {
       flex: 1;
@@ -152,19 +175,41 @@
 
     .sidebar-header {
       background: #fff;
-      padding: 14px 16px;
+      padding: 8px 10px;
       border-bottom: 1px solid #ddd;
-      font-size: 16px;
-      font-weight: bold;
       display: flex;
-      justify-content: space-between;
+      gap: 4px;
       align-items: center;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 6px;
+      background: #f0f0f0;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-tab.active {
+      background: #ff6b00;
+      color: white;
+      font-weight: bold;
+    }
+    .tab-panel {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
     }
 
     /* ☰ 按钮：默认隐藏（宽屏），窄屏显示 */
-    .hamburger-btn {
-      display: none;
-    }
+    .hamburger-btn { display: none; }
+    .hamburger-header { display: none; }
+    /* 头像按钮：宽屏隐藏 */
+    .user-btn { display: none !important; }
     /* 遮罩层：默认隐藏 */
     .overlay {
       display: none;
@@ -297,10 +342,12 @@
       flex-shrink: 0;
     }
     .card-checkbox input {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       cursor: pointer;
       accent-color: #ff6b00;
+      margin: 0;
+      flex-shrink: 0;
     }
     .card-body {
       flex: 1;
@@ -463,6 +510,74 @@
       background: #ddd;
     }
 
+    /* ===== 连线模式提示条 ===== */
+    .connect-banner {
+      display: none;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: #2196F3;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(33,150,243,0.4);
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .connect-banner.show { display: flex; }
+    .connect-banner button {
+      background: rgba(255,255,255,0.3);
+      border: none;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }
+
+    /* ===== 路线卡片 ===== */
+    .route-card {
+      background: white;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-left: 4px solid #2196F3;
+      cursor: pointer;
+    }
+    .route-card .route-path {
+      font-size: 12px;
+      color: #666;
+      margin: 4px 0;
+      line-height: 1.6;
+    }
+    .route-card .route-path span {
+      color: #333;
+      font-weight: bold;
+    }
+    .route-card .route-info {
+      font-size: 11px;
+      color: #999;
+      display: flex;
+      gap: 12px;
+    }
+    .route-card .route-delete {
+      float: right;
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+    }
+    .route-card .route-delete:hover { color: #e74c3c; }
+
     /* ===== 移动端适配：手机上看 ===== */
     @media (max-width: 600px) {
       /* 标题缩小，给搜索框让空间 */
@@ -473,10 +588,9 @@
       .header-title .icon {
         font-size: 20px;
       }
-      /* 搜索栏缩小并靠右 */
+      /* 搜索栏居中 */
       .search-box {
-        max-width: 140px;
-        margin-left: auto;
+        flex: 1;
       }
       .search-box input {
         font-size: 16px;          /* 16px 防止 iOS 自动放大 */
@@ -541,6 +655,10 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         -webkit-tap-highlight-color: transparent;
       }
+      .hamburger-header { display: flex !important; position:absolute; right:10px; top:50%; transform:translateY(-50%); align-items:center; justify-content:center; width:32px; height:32px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); border-radius:4px; cursor:pointer; font-size:18px; }
+      .hamburger-btn { display: none !important; }
+      .header { padding-left: 44px; padding-right: 44px; }
+      .user-btn { display: inline-block !important; }
       .hamburger-btn.hidden {
         display: none;                 /* 侧边栏展开后隐藏按钮 */
       }
@@ -560,6 +678,33 @@
         display: block;
       }
     }
+    /* 用户按钮 */
+    .user-btn {
+      display: none;
+      margin-left: 8px; padding: 4px 10px;
+      background: rgba(255,255,255,0.2); color: white;
+      border: 1px solid rgba(255,255,255,0.4); border-radius: 4px;
+      cursor: pointer; font-size: 12px; font-family: inherit;
+      white-space: nowrap;
+    }
+    /* 左侧面板 */
+    .left-panel{display:none;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;border-right:1px solid #ddd}
+    .left-panel.open{display:flex}
+    @media(max-width:600px){
+      .left-panel{position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;display:flex;transform:translateX(-100%);transition:transform .3s;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none}
+      .left-panel.open{transform:translateX(0)}
+    }
+    .left-panel .ps{padding:16px;border-bottom:1px solid #eee}
+    .left-panel h3{margin-bottom:12px;font-size:16px}
+    .left-panel input{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit}
+    .left-panel .btn{width:100%;padding:10px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:6px}
+    .btn-orange{background:#ff6b00;color:#fff}
+    .btn-gray{background:#eee;color:#333}
+    .left-panel .msg{font-size:12px;color:#e74c3c;text-align:center;min-height:18px}
+    .left-panel .stat-row{display:flex;gap:8px}
+    .left-panel .stat-card{flex:1;background:#fff;border-radius:8px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .left-panel .stat-card .num{font-size:24px;font-weight:700;color:#ff6b00}
+    .left-panel .stat-card .label{font-size:11px;color:#999;margin-top:4px}
   </style>
 </head>
 
@@ -567,18 +712,48 @@
 
   <!-- ===== 顶部标题 ===== -->
   <div class="header">
-    <span class="header-title">
-      <span class="icon">🛵</span>
-      骑手地图
-    </span>
+    <button class="hamburger-header" id="hb-header" onclick="openSidebar()" style="display:none;position:absolute;right:16px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:4px;cursor:pointer;font-size:16px;padding:4px 8px;">☰</button>
+<button class="user-btn" id="user-btn" onclick="toggleAuth()" style="position:absolute;left:16px;display:inline-block;">👤</button>
     <div class="search-box">
-      <input type="text" id="search-input" placeholder="搜索地址…" onkeydown="if(event.key==='Enter')searchAddress()">
+      <input type="text" id="search-input" placeholder="搜索地址…"
+        oninput="showInputSuggestions()"
+        onkeydown="handleSearchKey(event)"
+        onblur="setTimeout(function(){hideSuggestions()},200)"
+        onfocus="showInputSuggestions()"
+        autocomplete="off">
       <button onclick="searchAddress()">🔍</button>
+      <div class="search-suggestions" id="search-suggestions"></div>
     </div>
   </div>
 
   <!-- ===== 主体 ===== -->
   <div class="main-container">
+
+    <!-- 左侧个人面板 -->
+    <div class="left-panel" id="left-panel">
+      <div class="ps" id="panel-content">
+        <div id="profile-view">
+          <div style="text-align:center;margin-bottom:8px;cursor:pointer;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
+            <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #ff6b00;display:none;">
+            <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:#ff6b00;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;"></div>
+            <div style="font-size:10px;color:#999;margin-top:4px;">点击更换头像</div>
+          </div>
+          <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
+          <input type="text" id="my-nickname" placeholder="你的昵称" onchange="saveProfile()" onblur="saveProfile()">
+          <button class="btn btn-gray" onclick="showShareCode()">📤 生成分享码</button>
+          <div id="share-result" style="margin-top:8px;font-size:12px;display:none;">
+            <input type="text" id="share-code" readonly style="font-size:11px;margin-bottom:4px;">
+            <button class="btn btn-gray" onclick="copyShareCode()" style="font-size:11px;">复制分享码</button>
+          </div>
+          <hr style="margin:12px 0;border-color:#eee">
+          <h3 style="font-size:14px;">好友列表</h3>
+          <div id="friend-list" style="font-size:12px;color:#999;">还没有好友</div>
+          <input type="text" id="friend-code" placeholder="输入好友的分享码" style="margin-top:8px;">
+          <button class="btn btn-orange" onclick="importFriend()">添加好友</button>
+          <div class="msg" id="auth-msg"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- 手机版：☰ 按钮 -->
     <button class="hamburger-btn" id="hamburger-btn" onclick="openSidebar()">☰</button>
@@ -588,39 +763,53 @@
 
     <!-- 地图容器 -->
     <div id="map">
+      <!-- 连线模式提示条 -->
+      <div class="connect-banner" id="connect-banner" onclick="event.stopPropagation()">
+        <span>🔗 连线模式：点击标记添加途经点</span>
+        <button onclick="event.stopPropagation();finishConnect()">✅ 完成</button>
+        <button onclick="event.stopPropagation();cancelConnect()" style="background:rgba(255,255,255,0.2);">✕</button>
+      </div>
       <!-- 定位按钮 -->
-      <button class="locate-btn" id="locate-btn" onclick="locateMe()" title="定位到当前位置">◎</button>
+      <button class="locate-btn" id="locate-btn" onclick="event.stopPropagation();locateMe()" title="定位到当前位置">◎</button>
     </div>
 
     <!-- 右侧面板 / 手机版变成滑入覆盖层 -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        📍 已标记的地点
+        <button class="sidebar-tab active" id="tab-markers" onclick="switchTab('markers')">📍 已标记地点</button>
+        <button class="sidebar-tab" id="tab-routes" onclick="switchTab('routes')">🔗 已规划路线</button>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span class="count" id="marker-count">0</span>
-          <button class="sidebar-close-btn" onclick="closeSidebar()" title="关闭">✕</button>
         </div>
       </div>
 
-      <!-- 标签筛选 + 关键词搜索 -->
-      <div class="sidebar-toolbar">
-        <div class="tag-filters" id="tag-filters">
-          <!-- 动态生成筛选按钮 -->
+      <!-- 地点模式面板 -->
+      <div class="tab-panel" id="panel-markers">
+        <div class="sidebar-toolbar">
+          <div class="tag-filters" id="tag-filters"></div>
+          <div class="sidebar-search">
+            <input type="text" id="list-search" placeholder="🔍 搜索地点、标签或备注…" oninput="selectedMarkers.clear();renderMarkerList()">
+          </div>
+          <div class="toolbar-actions" id="toolbar-actions">
+            <button class="clear-all-btn" onclick="deleteFilteredMarkers()">🗑 清空当前</button>
+          </div>
         </div>
-        <div class="sidebar-search">
-          <input type="text" id="list-search" placeholder="🔍 搜索地点、标签或备注…" oninput="selectedMarkers.clear();renderMarkerList()">
-        </div>
-        <div class="toolbar-actions" id="toolbar-actions">
-          <button class="clear-all-btn" onclick="deleteFilteredMarkers()">🗑 清空当前</button>
-        </div>
+        <div class="marker-list" id="marker-list"></div>
+        <div class="batch-actions" id="batch-actions" style="display:none;"></div>
       </div>
 
-      <div class="marker-list" id="marker-list">
-        <!-- 标记卡片会动态插入到这里 -->
+      <!-- 路线模式面板 -->
+      <div class="tab-panel" id="panel-routes" style="display:none;">
+        <div class="sidebar-toolbar">
+          <div class="sidebar-search">
+            <input type="text" id="route-search" placeholder="🔍 搜索路线…" oninput="selectedRoutes.clear();renderRouteList()">
+          </div>
+          <div class="toolbar-actions">
+            <button class="clear-all-btn" onclick="deleteAllRoutes()">🗑 清空全部</button>
+          </div>
+        </div>
+        <div class="marker-list" id="route-list"></div>
+        <div class="batch-actions" id="route-batch-actions" style="display:none;"></div>
       </div>
-
-      <!-- 批量操作栏 -->
-      <div class="batch-actions" id="batch-actions" style="display:none;"></div>
     </div>
 
   </div>
@@ -631,7 +820,11 @@
     // 控制一切交互逻辑
     // ============================================
 
-    // ---------- 第一步：初始化地图 ----------
+    // ---------- 第零步：左侧面板 ----------
+if(window.innerWidth>600)document.getElementById('left-panel').classList.add('open');
+function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){p.classList.remove('open');return;}p.classList.add('open');closeSidebar();}else{p.classList.toggle('open');}}
+function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');}
+// ---------- 第一步：初始化地图 ----------
 
     const map = L.map('map').setView([31.23, 121.47], 12);
 
@@ -642,9 +835,7 @@
       maxZoom: 18
     }).addTo(map);
 
-    // 页面打开时自动定位到当前位置
-    autoLocateOnStart();
-
+    // 定位按钮功能
     function autoLocateOnStart() {
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(
@@ -697,10 +888,18 @@
     // ---------- 第二步：准备数据 ----------
 
     // 从 localStorage 读取已保存的标记
-    // 如果第一次用，给一个空数组 []
     let markers = JSON.parse(localStorage.getItem('rider-markers') || '[]');
 
-    // 标签预设：从 localStorage 读取，首次使用给默认值
+    // 已规划路线
+    let routes = JSON.parse(localStorage.getItem('rider-routes') || '[]');
+    function saveRoutes() { localStorage.setItem('rider-routes', JSON.stringify(routes)); }
+
+    // 连线模式状态
+    let connectMode = false;
+    let connectPath = [];
+    let editingRouteId = null;  // 编辑中的路线ID
+
+    // 标签预设
     const DEFAULT_TAGS = ['无法骑车', '有电梯', '需门禁卡', '可骑车进入', '需打电话', '步行上楼'];
     let tagPresets = JSON.parse(localStorage.getItem('rider-tag-presets') || JSON.stringify(DEFAULT_TAGS));
 
@@ -736,20 +935,14 @@
     // 刷新弹窗中的预设 UI（datalist + 芯片栏）
     function refreshPresetUI() {
       var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
-      var dl = document.getElementById('tag-list');
-      if (dl) {
-        dl.innerHTML = tagPresets.map(function(t) {
-          return '<option value="' + escapeHtml(t) + '">';
-        }).join('');
-      }
       var bar = document.getElementById('preset-bar');
       if (bar) {
         bar.innerHTML = tagPresets.map(function(t, i) {
-          return '<span class="preset-chip" onclick="pickPreset(\'' + esc(t) + '\')">' + escapeHtml(t)
-            + '<button class="preset-del" onclick="event.stopPropagation();removeTagPreset(' + i + ')" title="删除">×</button>'
+          return '<span class="preset-chip" data-tag="' + esc(t) + '" onclick="toggleChip(this)">' + escapeHtml(t)
+            + '<button class="preset-del" onclick="event.stopPropagation();removeTagPreset(' + i + ')" title="从预设删除">×</button>'
             + '</span>';
         }).join('')
-        + '<button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋</button>';
+        + '<button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋ 添加标签</button>';
       }
     }
 
@@ -762,6 +955,7 @@
 
     // 暂存当前选中的标签
     let pendingTags = [];
+    let editingMarkerIdx = -1;
 
     // 保存按钮被点击（由弹窗里按钮直接调用）
     function savePendingMarker() {
@@ -773,23 +967,20 @@
       selectedChips.forEach(function(chip) {
         tags.push(chip.getAttribute('data-tag'));
       });
-      // 也检查自定义输入
-      var customInput = document.getElementById('popup-tag-custom');
-      if (customInput && customInput.value.trim()) {
-        var customTag = customInput.value.trim();
-        if (tags.indexOf(customTag) === -1) tags.push(customTag);
-        // 新标签自动加入预设
-        if (tagPresets.indexOf(customTag) === -1) {
-          tagPresets.push(customTag);
-          saveTagPresets();
-        }
-      }
       if (tags.length === 0) tags = ['未分类'];
 
       var note = noteTextarea.value.trim();
       var locName = pendingLocationName || '未知位置';
       if (pendingMarker) pendingMarker.remove();
-      if (pendingCallback) pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, tags: tags, note: note, locationName: locName });
+      if (editingMarkerIdx >= 0) {
+        // 编辑模式：更新已有标记
+        var m = markers[editingMarkerIdx];
+        if (m) { m.tags = tags; m.note = note; m.locationName = locName; }
+        editingMarkerIdx = -1;
+        saveMarkers();
+      } else if (pendingCallback) {
+        pendingCallback({ lat: pendingCallback.lat, lng: pendingCallback.lng, tags: tags, note: note, locationName: locName });
+      }
       pendingMarker = null;
       pendingCallback = null;
       pendingLocationName = '';
@@ -802,6 +993,7 @@
       pendingMarker = null;
       pendingCallback = null;
       pendingLocationName = '';
+      editingMarkerIdx = -1;
     }
 
     // 弹出标记表单，让用户填写信息
@@ -811,14 +1003,18 @@
 
       // 暂存位置和回调
       pendingCallback = callback;
-      pendingCallback.lat = lat;
-      pendingCallback.lng = lng;
+      if (callback) {
+        callback.lat = lat;
+        callback.lng = lng;
+      }
       pendingLocationName = '';
 
-      // 创建一个临时标记
-      pendingMarker = L.marker([lat, lng], {
-        draggable: false
-      }).addTo(map);
+      // 创建一个临时标记（红钉图标）
+      var tempIcon = L.divIcon({
+        html: '<div style="background:#e74c3c;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"><div style="background:white;width:6px;height:6px;border-radius:50%;position:relative;top:6px;left:6px;"></div></div>',
+        className: '', iconSize: [28, 28], iconAnchor: [14, 30], popupAnchor: [0, -32]
+      });
+      pendingMarker = L.marker([lat, lng], { icon: tempIcon, draggable: false }).addTo(map);
 
       // 构建弹窗内容
       var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
@@ -836,8 +1032,7 @@
           </div>
           <label>标签（可多选，点击切换）</label>
           <div class="preset-bar" id="preset-bar">${tagChipsHtml}
-            <input type="text" id="popup-tag-custom" placeholder="自定义…" style="font-size:11px;padding:2px 6px;border:1px dashed #ccc;border-radius:10px;width:70px;outline:none;" autocomplete="off">
-            <button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋</button>
+            <button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋ 添加标签</button>
           </div>
           <label>备注描述（选填）</label>
           <textarea id="popup-note" placeholder="例如：北门有电梯，步行3分钟到5号楼&#10;或者：所有门都无法骑车，必须电话联系客户"></textarea>
@@ -886,6 +1081,7 @@
     let activeTagFilters = new Set();
     // 多选删除：选中的标记索引集合
     let selectedMarkers = new Set();
+    let selectedRoutes = new Set();
 
     // 保存所有标记到 localStorage
     function saveMarkers() {
@@ -906,42 +1102,40 @@
 
       // 重新画标记
       markers.forEach(function(markerData, index) {
-        const tag = getFirstTag(markerData);
-        // 根据标签内容选颜色
-        var color = '#f39c12';
-        if (tag.indexOf('无法') >= 0 || tag.indexOf('不让') >= 0) color = '#e74c3c';
-        else if (tag.indexOf('电梯') >= 0) color = '#27ae60';
-        else if (tag.indexOf('门禁') >= 0) color = '#8e44ad';
-        else if (tag.indexOf('电话') >= 0) color = '#2980b9';
-        var iconEmoji = tag.length > 3 ? tag.substring(0, 2) : tag;
-
-        // 自定义标记图标
+        // 红钉图标（CSS teardrop 形状）
         const icon = L.divIcon({
           html: `<div style="
-            background: ${color};
-            color: white;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            border: 3px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-            overflow: hidden;
-          ">${escapeHtml(iconEmoji)}</div>`,
+            background:#e74c3c;
+            width:22px;height:22px;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid white;
+            box-shadow:0 2px 6px rgba(0,0,0,0.35);">
+            <div style="
+              background:white;
+              width:6px;height:6px;
+              border-radius:50%;
+              position:relative;
+              top:6px;left:6px;
+            "></div></div>`,
           className: '',
           iconSize: [28, 28],
-          iconAnchor: [14, 28],
-          popupAnchor: [0, -30]
+          iconAnchor: [14, 30],
+          popupAnchor: [0, -32]
         });
 
         const marker = L.marker([markerData.lat, markerData.lng], { icon: icon }).addTo(map);
 
+        // 连线模式下，点击标记加入路径
+        marker.on('click', function() {
+          if (connectMode) {
+            addToConnectPath(index);
+          }
+        });
+
         // 点击标记显示信息
         const popupLocName = markerData.locationName
-          ? '<div style="font-weight:bold;font-size:14px;margin-bottom:4px;">📍 ' + escapeHtml(markerData.locationName) + '</div>'
+          ? '<div style="font-weight:bold;font-size:14px;margin-bottom:4px;">' + escapeHtml(markerData.locationName) + '</div>'
           : '';
         var allTags = getTags(markerData);
         var popupTagsHtml = allTags.map(function(t) {
@@ -954,8 +1148,16 @@
             <p style="margin-top:6px;color:#333;">${escapeHtml(markerData.note)}</p>
             <small style="color:#999;">${formatTime(markerData.time)}</small>
             <br>
+            <button onclick="connectFromPopup(${index}); map.closePopup();"
+                    style="margin-top:8px;padding:4px 8px;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;margin-right:2px;">
+              🔗 连线
+            </button>
+            <button onclick="map.closePopup(); setTimeout(function(){ editMarker(${index}); }, 50);"
+                    style="margin-top:8px;padding:4px 8px;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;margin-right:2px;">
+              ✏️ 编辑
+            </button>
             <button onclick="deleteMarkerByIndex(${index}); map.closePopup();"
-                    style="margin-top:8px;padding:4px 12px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;">
+                    style="margin-top:8px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;">
               🗑 删除
             </button>
           </div>
@@ -1024,23 +1226,16 @@
         var tags = getTags(markerData);
         var checked = selectedMarkers.has(realIndex) ? 'checked' : '';
 
-        var firstTag = tags[0] || '未分类';
-        var borderColor = '#ff6b00';
-        if (firstTag.indexOf('无法') >= 0 || firstTag.indexOf('不让') >= 0) borderColor = '#e74c3c';
-        else if (firstTag.indexOf('电梯') >= 0) borderColor = '#27ae60';
-        else if (firstTag.indexOf('门禁') >= 0) borderColor = '#8e44ad';
-        else if (firstTag.indexOf('电话') >= 0) borderColor = '#2980b9';
-
         var tagsHtml = tags.map(function(t) {
           return '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#ffe0e0;color:#c0392b;">' + escapeHtml(t) + '</span>';
         }).join('');
 
         var locName = markerData.locationName
-          ? '<div class="loc-name">📍 ' + escapeHtml(markerData.locationName) + '</div>'
+          ? '<div class="loc-name">' + escapeHtml(markerData.locationName) + '</div>'
           : '';
 
         return `
-          <div class="marker-card" style="border-left-color:${borderColor}">
+          <div class="marker-card" style="border-left-color:#e74c3c">
             <label class="card-checkbox" onclick="event.stopPropagation()">
               <input type="checkbox" ${checked} onchange="toggleSelectMarker(${realIndex}, this.checked)">
             </label>
@@ -1048,7 +1243,10 @@
               <button class="delete-btn" onclick="event.stopPropagation(); deleteMarkerByIndex(${realIndex})" title="删除">×</button>
               ${locName}
               <div style="margin-bottom:4px;">${tagsHtml}</div>
-              <div class="note">${escapeHtml(markerData.note)}</div>
+              ${markerData.note
+                ? '<div class="note">📝 ' + escapeHtml(markerData.note) + ' <button style="font-size:9px;background:none;border:none;cursor:pointer;color:#2196F3;padding:0;" onclick="event.stopPropagation();editMarkerNote(' + realIndex + ')" title="编辑备注">✏️</button></div>'
+                : '<div style="font-size:10px;color:#ccc;margin-top:2px;"><button style="font-size:9px;background:none;border:none;cursor:pointer;color:#ccc;padding:0;" onclick="event.stopPropagation();editMarkerNote(' + realIndex + ')">＋ 添加备注</button></div>'
+              }
               <div class="time">${formatTime(markerData.time)}</div>
             </div>
           </div>
@@ -1171,17 +1369,54 @@
     }
 
     // 删除标记
+    function editMarker(index) {
+      var m = markers[index];
+      if (!m) return;
+      editingMarkerIdx = index;
+      // 复用 showMarkerForm，但预填标签
+      showMarkerForm(m.lat, m.lng, null);
+      // 覆盖标签预设的选中状态
+      setTimeout(function() {
+        var tagChips = document.querySelectorAll('.preset-chip');
+        tagChips.forEach(function(chip) {
+          var tag = chip.getAttribute('data-tag');
+          if (m.tags && m.tags.indexOf(tag) >= 0) {
+            chip.classList.add('selected');
+          }
+        });
+        // 预填备注
+        var noteEl = document.getElementById('popup-note');
+        if (noteEl) noteEl.value = m.note || '';
+        // 预填位置名
+        pendingLocationName = m.locationName || '';
+        var locEl = document.getElementById('popup-location');
+        if (locEl && m.locationName) {
+          locEl.innerHTML = '📍 ' + escapeHtml(m.locationName);
+          locEl.style.color = '#333';
+          locEl.style.background = '#e8f5e9';
+        }
+      }, 100);
+    }
+
+    function editMarkerNote(index) {
+      var m = markers[index];
+      if (!m) return;
+      var newNote = prompt('编辑备注：', m.note || '');
+      if (newNote === null) return;
+      m.note = newNote.trim();
+      saveMarkers();
+    }
+
     function deleteMarkerByIndex(index) {
-      if (confirm('确定要删除这个标记吗？')) {
-        markers.splice(index, 1);
-        selectedMarkers.clear();
-        saveMarkers();
-      }
+      markers.splice(index, 1);
+      selectedMarkers.clear();
+      saveMarkers();
     }
 
     // 更新侧边栏计数
     function updateCount() {
-      document.getElementById('marker-count').textContent = markers.length;
+      var el = document.getElementById('marker-count');
+      if (el) el.textContent = markers.length;
     }
 
     // ---------- 第六步：辅助函数 ----------
@@ -1204,6 +1439,85 @@
     }
 
     // ---------- 第七步：地址搜索（高德地图，国内秒开） ----------
+
+    let sugIndex = -1;  // 当前键盘高亮的建议项
+
+    function showInputSuggestions() {
+      var input = document.getElementById('search-input');
+      var query = input.value.trim();
+      var sugBox = document.getElementById('search-suggestions');
+      if (query.length < 1) {
+        hideSuggestions();
+        return;
+      }
+      var url = 'https://restapi.amap.com/v3/assistant/inputtips?key=' + AMAP_KEY
+        + '&keywords=' + encodeURIComponent(query)
+        + '&city=上海&output=json';
+
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.status === '1' && data.tips && data.tips.length > 0) {
+            sugIndex = -1;
+            sugBox.innerHTML = data.tips.filter(function(t) { return t.location && t.location.length > 0; }).map(function(t, i) {
+              return '<div class="sug-item" data-index="' + i + '" data-location="' + t.location + '" data-name="' + escapeHtml(t.name) + '" onmousedown="pickSuggestion(\'' + t.location + '\',\'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')">' + escapeHtml(t.name) + '<span class="sug-district">' + escapeHtml(t.district || '') + '</span></div>';
+            }).join('');
+            sugBox.classList.add('show');
+          } else {
+            hideSuggestions();
+          }
+        })
+        .catch(function() { hideSuggestions(); });
+    }
+
+    function hideSuggestions() {
+      var sugBox = document.getElementById('search-suggestions');
+      sugBox.classList.remove('show');
+      sugIndex = -1;
+    }
+
+    function pickSuggestion(location, name) {
+      var parts = location.split(',');
+      var lng = parseFloat(parts[0]);
+      var lat = parseFloat(parts[1]);
+      document.getElementById('search-input').value = name;
+      hideSuggestions();
+      // 直接飞到该位置
+      map.flyTo([lat, lng], 16, { duration: 0.8 });
+      L.circle([lat, lng], { radius: 50, color: '#2196F3', fillColor: '#2196F3', fillOpacity: 0.3, weight: 2 }).addTo(map);
+    }
+
+    function handleSearchKey(e) {
+      var sugBox = document.getElementById('search-suggestions');
+      var items = sugBox.querySelectorAll('.sug-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        sugIndex = Math.min(sugIndex + 1, items.length - 1);
+        updateSugActive(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        sugIndex = Math.max(sugIndex - 1, -1);
+        updateSugActive(items);
+      } else if (e.key === 'Enter') {
+        if (sugIndex >= 0 && items[sugIndex]) {
+          e.preventDefault();
+          items[sugIndex].click();
+        } else {
+          hideSuggestions();
+          searchAddress();
+        }
+      } else if (e.key === 'Escape') {
+        hideSuggestions();
+      }
+    }
+
+    function updateSugActive(items) {
+      items.forEach(function(item, i) {
+        item.classList.toggle('active', i === sugIndex);
+      });
+    }
+
+    // ---------- 第八步：地址搜索执行 ----------
 
     function searchAddress() {
       const input = document.getElementById('search-input');
@@ -1320,7 +1634,7 @@
       document.getElementById('search-input').value = '';
     }
 
-    // ---------- 第八步：逆地理编码（经纬度 → 位置名称） ----------
+    // ---------- 第九步：逆地理编码（经纬度 → 位置名称） ----------
 
     function fetchLocationName(lat, lng, callback) {
       // 新逻辑：优先周边搜索（直接取地图上显示的地名）
@@ -1386,11 +1700,433 @@
     renderMapMarkers();
     renderMarkerList();
     updateCount();
+    renderRouteList();
+
+    // ---------- 第十步：连线功能 ----------
+
+    function switchTab(tab) {
+      if (window.innerWidth <= 600) closeLeftPanel();
+      document.getElementById('tab-markers').classList.toggle('active', tab === 'markers');
+      document.getElementById('tab-routes').classList.toggle('active', tab === 'routes');
+      document.getElementById('panel-markers').style.display = tab === 'markers' ? '' : 'none';
+      document.getElementById('panel-routes').style.display = tab === 'routes' ? '' : 'none';
+      if (tab === 'markers') renderMarkerList();
+      if (tab === 'routes') renderRouteList();
+    }
+
+    function connectFromPopup(index) {
+      if (!connectMode) {
+        connectMode = true;
+        connectPath = [index];
+        document.getElementById('connect-banner').classList.add('show');
+        clearRouteLines();
+        renderMapMarkers();
+      } else {
+        addToConnectPath(index);
+      }
+      if (window.innerWidth <= 600) closeSidebar();
+    }
+
+    function startConnectMode() {
+      connectMode = true;
+      connectPath = [];
+      document.getElementById('connect-banner').classList.add('show');
+      clearRouteLines();
+      if (window.innerWidth <= 600) closeSidebar();
+    }
+
+    function editRoute(routeId) {
+      var route = routes.find(function(r) { return r.id === routeId; });
+      if (!route) return;
+      editingRouteId = routeId;
+      connectMode = true;
+      connectPath = [...route.stops];
+      document.getElementById('connect-banner').classList.add('show');
+      document.getElementById('connect-banner').querySelector('span').textContent = '🔗 编辑路线：点击标记添加途经点';
+      clearRouteLines();
+      drawConnectLines();
+      renderMapMarkers();
+      if (window.innerWidth <= 600) closeSidebar();
+    }
+
+    function cancelConnect() {
+      connectMode = false;
+      connectPath = [];
+      editingRouteId = null;
+      document.getElementById('connect-banner').classList.remove('show');
+      document.getElementById('connect-banner').querySelector('span').textContent = '🔗 连线模式：点击标记添加途经点';
+      clearRouteLines();
+      renderMapMarkers();
+    }
+
+    function finishConnect() {
+      if (connectPath.length < 2) { alert('至少需要选 2 个标记点才能连线'); return; }
+      var viewId;
+      if (editingRouteId) {
+        var route = routes.find(function(r) { return r.id === editingRouteId; });
+        if (route) { route.stops = [...connectPath]; route.totalWalkDist = 0; }
+        viewId = editingRouteId;
+        editingRouteId = null;
+      } else {
+        viewId = Date.now();
+        routes.push({ id: viewId, stops: [...connectPath], time: Date.now(), note: '' });
+      }
+      saveRoutes();
+      connectMode = false;
+      connectPath = [];
+      var banner = document.getElementById('connect-banner');
+      banner.classList.remove('show');
+      banner.querySelector('span').textContent = '🔗 连线模式：点击标记添加途经点';
+      clearRouteLines();
+      renderMapMarkers();
+      renderRouteList();
+      switchTab('routes');
+      setTimeout(function() { viewRoute(viewId); }, 200);
+    }
+
+    function addToConnectPath(index) {
+      if (connectPath.length > 0 && connectPath[connectPath.length - 1] === index) return;
+      connectPath.push(index);
+      console.log('连线路径:', connectPath, '当前点:', markers[index]);
+      drawConnectLines();
+      renderMapMarkers();
+    }
+
+    function calcDistKm(lat1, lng1, lat2, lng2) {
+      var R = 6371;
+      var dLat = (lat2 - lat1) * Math.PI / 180;
+      var dLng = (lng2 - lng1) * Math.PI / 180;
+      var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    var _connectLines = [];
+    var _routeLegend = null;
+    function drawConnectLines() {
+      clearRouteLines();
+      for (var i = 0; i < connectPath.length - 1; i++) {
+        var a = markers[connectPath[i]];
+        var b = markers[connectPath[i + 1]];
+        if (a && b) {
+          var line = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color: '#2196F3', weight: 3, dashArray: '8 4', opacity: 0.8 }).addTo(map);
+          _connectLines.push(line);
+          // 箭头
+          var dLa = b.lat - a.lat, dLn = b.lng - a.lng;
+          var segLen = Math.sqrt(dLa * dLa + dLn * dLn);
+          if (segLen > 0.0001) {
+            var pLa = -dLn / segLen, pLn = dLa / segLen;
+            var hs = 0.0005;
+            [0.3, 0.7].forEach(function(t) {
+              var cx = a.lat + dLa * t, cy = a.lng + dLn * t;
+              var tip = [cx + dLa / segLen * hs, cy + dLn / segLen * hs];
+              var left = [cx - dLa / segLen * hs * 0.3 + pLa * hs * 0.7, cy - dLn / segLen * hs * 0.3 + pLn * hs * 0.7];
+              var right = [cx - dLa / segLen * hs * 0.3 - pLa * hs * 0.7, cy - dLn / segLen * hs * 0.3 - pLn * hs * 0.7];
+              _connectLines.push(L.polyline([left, tip, right], { color: '#2196F3', weight: 2.5, opacity: 0.8 }).addTo(map));
+            });
+          }
+        }
+      }
+    }
+
+    function buildLegendHtml(segDists, segColors) {
+      var html = '', total = 0, allDone = true;
+      for (var i = 0; i < segDists.length; i++) {
+        var d = segDists[i];
+        if (d) {
+          html += '<span style="color:' + segColors[i % segColors.length] + ';">━━━━</span>'
+            + ' <span style="color:#333;">' + (d / 1000).toFixed(1) + ' km</span><br>';
+          total += d;
+        } else {
+          html += '<span style="color:' + segColors[i % segColors.length] + ';">━━━━</span>'
+            + ' <span style="color:#999;">加载中…</span><br>';
+          allDone = false;
+        }
+      }
+      if (allDone && segDists.length > 1) {
+        html += '<b>共 ' + (total / 1000).toFixed(1) + ' km</b>';
+      }
+      return html;
+    }
+
+    function clearRouteLines() {
+      if (_connectLines && _connectLines.length) {
+        _connectLines.forEach(function(l) { map.removeLayer(l); });
+      }
+      _connectLines = [];
+      if (_routeLegend) { _routeLegend.remove(); _routeLegend = null; }
+    }
+
+    // 高德步行 polyline 解码：格式是 "lng,lat;lng,lat;..." 分号分隔
+    function decodePathPolyline(encoded) {
+      if (!encoded) return [];
+      return encoded.split(';').map(function(pair) {
+        var parts = pair.split(',');
+        return [parseFloat(parts[1]), parseFloat(parts[0])];  // 返回 [lat, lng]
+      }).filter(function(p) { return !isNaN(p[0]) && !isNaN(p[1]); });
+    }
+
+    // 调用高德步行路径规划 API
+    function fetchWalkRoute(fromLat, fromLng, toLat, toLng, callback) {
+      var url = 'https://restapi.amap.com/v3/direction/walking?key=' + AMAP_KEY
+        + '&origin=' + fromLng + ',' + fromLat
+        + '&destination=' + toLng + ',' + toLat;
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
+            var path = data.route.paths[0];
+            var points = [];
+            path.steps.forEach(function(step) {
+              var pts = decodePathPolyline(step.polyline);
+              if (points.length > 0 && pts.length > 0) {
+                var last = points[points.length - 1];
+                var first = pts[0];
+                if (Math.abs(last[0] - first[0]) < 0.00001 && Math.abs(last[1] - first[1]) < 0.00001) {
+                  pts = pts.slice(1);
+                }
+              }
+              points = points.concat(pts);
+            });
+            callback({ points: points, distance: parseInt(path.distance), duration: parseInt(path.duration) });
+          } else {
+            callback(null);
+          }
+        })
+        .catch(function() { callback(null); });
+    }
+
+    function renderRouteList() {
+      var listEl = document.getElementById('route-list');
+      if (!listEl) return;
+      // 批量删除栏
+      var routeBar = document.getElementById('route-batch-actions');
+      if (routeBar) {
+        if (selectedRoutes.size > 0) {
+          routeBar.style.display = 'flex';
+          routeBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedRoutes.size + ' 项</span>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedRoutes()">🗑 删除选中</button>';
+        } else {
+          routeBar.style.display = 'none';
+        }
+      }
+      if (routes.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px 16px;font-size:14px;">还没有规划路线<br><br>点击标记弹窗中的「🔗 连线」创建</div>';
+        return;
+      }
+      // 搜索过滤
+      var kw = (document.getElementById('route-search') || {}).value || '';
+      kw = kw.trim().toLowerCase();
+      var sorted = [...routes].reverse();
+      if (kw) {
+        sorted = sorted.filter(function(route) {
+          var matchNote = (route.note || '').toLowerCase().indexOf(kw) >= 0;
+          var matchStops = route.stops.some(function(i) {
+            var m = markers[i];
+            if (!m) return false;
+            var loc = (m.locationName || '').toLowerCase();
+            var tags = getTags(m).join(' ').toLowerCase();
+            return loc.indexOf(kw) >= 0 || tags.indexOf(kw) >= 0;
+          });
+          return matchNote || matchStops;
+        });
+      }
+      if (sorted.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 16px;font-size:14px;">没有匹配的路线</div>';
+        return;
+      }
+      listEl.innerHTML = sorted.map(function(route) {
+        var names = route.stops.map(function(i) { var m = markers[i]; return m ? escapeHtml(m.locationName || getFirstTag(m)) : '（已删除）'; });
+        var totalDist = 0;
+        for (var j = 0; j < route.stops.length - 1; j++) {
+          var a = markers[route.stops[j]], b = markers[route.stops[j + 1]];
+          if (a && b) totalDist += calcDistKm(a.lat, a.lng, b.lat, b.lng);
+        }
+        var pathHtml = names.map(function(n, i) { return (i > 0 ? ' → ' : '') + '<span>' + n + '</span>'; }).join('');
+        // 备注
+        var noteHtml = route.note
+          ? '<div style="font-size:11px;color:#888;margin-top:2px;">📝 ' + escapeHtml(route.note) + ' <button class="route-delete" style="font-size:9px;color:#2196F3;float:none;" onclick="event.stopPropagation();editRouteNote(' + route.id + ')" title="编辑备注">✏️</button></div>'
+          : '<div style="font-size:10px;color:#ccc;margin-top:2px;"><button class="route-delete" style="font-size:9px;color:#ccc;float:none;" onclick="event.stopPropagation();editRouteNote(' + route.id + ')" title="添加备注">＋ 添加备注</button></div>';
+        // 直线距离和步行距离
+        var distLine = (totalDist > 0 ? '<span>📏 直线 ' + totalDist.toFixed(1) + ' km</span>' : '');
+        var walkDist = route.totalWalkDist ? '<span>🚶 步行 ' + (route.totalWalkDist / 1000).toFixed(1) + ' km</span>' : '<span style="color:#999;">🚶 点击查看步行距离</span>';
+        var rChecked = selectedRoutes.has(route.id) ? 'checked' : '';
+        return '<div class="route-card">'
+          + '<label class="card-checkbox" onclick="event.stopPropagation()">'
+          + '<input type="checkbox" ' + rChecked + ' onchange="toggleSelectRoute(' + route.id + ', this.checked)">'
+          + '</label>'
+          + '<div class="card-body" onclick="viewRoute(' + route.id + ')">'
+          + '<button class="route-delete" onclick="event.stopPropagation();deleteRoute(' + route.id + ')" title="删除">×</button>'
+          + '<button class="route-delete" style="color:#2196F3;" onclick="event.stopPropagation();editRoute(' + route.id + ')" title="加点">＋</button>'
+          + '<button class="route-delete" style="color:#27ae60;" onclick="event.stopPropagation();navigateRoute(' + route.id + ',\'walking\')" title="高德步行导航">🚶</button>'
+          + '<button class="route-delete" style="color:#e74c3c;" onclick="event.stopPropagation();navigateRoute(' + route.id + ',\'bicycling\')" title="高德骑行导航">🚴</button>'
+          + '<div class="route-path">' + pathHtml + '</div>'
+          + noteHtml
+          + '<div class="route-info"><span>🛵 ' + route.stops.length + ' 站</span>'
+          + distLine
+          + walkDist
+          + '<span>🕐 ' + formatTime(route.time) + '</span></div>'
+          + '</div></div>';
+      }).join('');
+    }
+
+    function viewRoute(routeId) {
+      var route = routes.find(function(r) { return r.id === routeId; });
+      if (!route) return;
+      clearRouteLines();
+
+      var segColors = ['#2196F3','#e74c3c','#27ae60','#f39c12','#8e44ad','#00bcd4'];
+      var lats = [];
+      route.stops.forEach(function(i) { var m = markers[i]; if (m) lats.push([m.lat, m.lng]); });
+      if (lats.length === 0) return;
+      map.fitBounds(L.latLngBounds(lats), { padding: [50, 50] });
+
+      // 图例（先显示加载中，后续更新）
+      var legend = L.control({ position: 'bottomleft' });
+      var segCount = route.stops.length - 1;
+      var segDists = new Array(segCount).fill(null);
+      legend.onAdd = function() {
+        var d = L.DomUtil.create('div', '');
+        d.id = 'route-legend';
+        d.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
+          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors) + '</div>';
+        return d;
+      };
+      legend.addTo(map);
+      _routeLegend = legend;
+
+      function updateLegend() {
+        var el = document.getElementById('route-legend');
+        if (el) el.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
+          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors) + '</div>';
+      }
+
+      // 画每段直线虚线 + 异步获取步行路径
+      var totalWalkDist = 0, doneCount = 0;
+      for (var i = 0; i < segCount; i++) {
+        var a = markers[route.stops[i]];
+        var b = markers[route.stops[i + 1]];
+        if (!a || !b) { doneCount++; continue; }
+        var sc = segColors[i % segColors.length];
+
+        // 虚线（直线距离）+ 箭头
+        var dashLine = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color: sc, weight: 2, dashArray: '8 6', opacity: 0.6 }).addTo(map);
+        _connectLines.push(dashLine);
+
+        // 在 30% 和 70% 位置画箭头（折线三角）
+        var dLat = b.lat - a.lat, dLng = b.lng - a.lng;
+        var len = Math.sqrt(dLat * dLat + dLng * dLng);
+        if (len > 0.0001) {
+          // 垂直于前进方向的单位向量
+          var pLat = -dLng / len, pLng = dLat / len;
+          var headSize = 0.0005;
+          [0.3, 0.7].forEach(function(t) {
+            var cx = a.lat + dLat * t, cy = a.lng + dLng * t;
+            var tip = [cx + dLat / len * headSize, cy + dLng / len * headSize];
+            var left = [cx - dLat / len * headSize * 0.3 + pLat * headSize * 0.7, cy - dLng / len * headSize * 0.3 + pLng * headSize * 0.7];
+            var right = [cx - dLat / len * headSize * 0.3 - pLat * headSize * 0.7, cy - dLng / len * headSize * 0.3 - pLng * headSize * 0.7];
+            var arrowLine = L.polyline([left, tip, right], { color: sc, weight: 2.5, opacity: 0.8 }).addTo(map);
+            _connectLines.push(arrowLine);
+          });
+        }
+
+        // 异步步行路径
+        (function(idx, from, to, color) {
+          fetchWalkRoute(from.lat, from.lng, to.lat, to.lng, function(result) {
+            doneCount++;
+            if (result && result.points.length > 0) {
+              totalWalkDist += result.distance;
+              segDists[idx] = result.distance;
+              updateLegend();
+              var walkLine = L.polyline(result.points, { color: color, weight: 4, opacity: 0.8 }).addTo(map);
+              _connectLines.push(walkLine);
+            } else {
+              segDists[idx] = 0;
+              updateLegend();
+            }
+            if (doneCount >= segCount) {
+              route.totalWalkDist = totalWalkDist;
+              saveRoutes();
+              renderRouteList();
+            }
+          });
+        })(i, a, b, sc);
+      }
+      if (window.innerWidth <= 600) closeSidebar();
+    }
+
+    function deleteRoute(routeId) {
+      if (!confirm('确定删除这条路线吗？')) return;
+      routes = routes.filter(function(r) { return r.id !== routeId; });
+      saveRoutes();
+      renderRouteList();
+      clearRouteLines();
+    }
+
+    function navigateRoute(routeId, mode) {
+      var route = routes.find(function(r) { return r.id === routeId; });
+      if (!route) return;
+      // 收集所有有效站点
+      var stops = route.stops.map(function(i) { return markers[i]; }).filter(Boolean);
+      if (stops.length < 2) { alert('路线站点不足'); return; }
+      function sName(m) { return encodeURIComponent(m.locationName || getFirstTag(m)); }
+      // from = 第1站, to = 最后1站, passes = 中间站
+      var url = 'https://uri.amap.com/navigation?from='
+        + stops[0].lng + ',' + stops[0].lat + ',' + sName(stops[0])
+        + '&to=' + stops[stops.length - 1].lng + ',' + stops[stops.length - 1].lat + ',' + sName(stops[stops.length - 1])
+        + '&mode=' + mode;
+      // 途经点（第2站到倒数第2站）
+      if (stops.length > 2) {
+        var passes = stops.slice(1, -1).map(function(m) {
+          return m.lng + ',' + m.lat + ',' + sName(m);
+        }).join(';');
+        url += '&passes=' + passes;
+      }
+      location.href = url;
+    }
+
+    function editRouteNote(routeId) {
+      var route = routes.find(function(r) { return r.id === routeId; });
+      if (!route) return;
+      var newNote = prompt('路线备注：', route.note || '');
+      if (newNote === null) return;
+      route.note = newNote.trim();
+      saveRoutes();
+      renderRouteList();
+    }
+
+    function toggleSelectRoute(id, checked) {
+      if (checked) { selectedRoutes.add(id); }
+      else { selectedRoutes.delete(id); }
+      renderRouteList();
+    }
+
+    function deleteSelectedRoutes() {
+      if (selectedRoutes.size === 0) return;
+      if (!confirm('确定要删除选中的 ' + selectedRoutes.size + ' 条路线吗？\n\n此操作不可恢复！')) return;
+      var ids = Array.from(selectedRoutes);
+      routes = routes.filter(function(r) { return ids.indexOf(r.id) === -1; });
+      selectedRoutes.clear();
+      saveRoutes();
+      renderRouteList();
+      clearRouteLines();
+    }
+
+    function deleteAllRoutes() {
+      if (routes.length === 0) return;
+      if (!confirm('确定要删除全部 ' + routes.length + ' 条路线吗？\n\n此操作不可恢复！')) return;
+      routes = [];
+      saveRoutes();
+      renderRouteList();
+      clearRouteLines();
+    }
 
     // ---------- 第十一步：手机端侧边栏开关 ----------
 
     function openSidebar() {
-      document.getElementById('sidebar').classList.add('open');
+      var s = document.getElementById('sidebar');
+      if (s.classList.contains('open')) { closeSidebar(); return; }
+      if (window.innerWidth <= 600) closeLeftPanel();
+      s.classList.add('open');
       document.getElementById('overlay').classList.add('show');
       document.getElementById('hamburger-btn').classList.add('hidden');
     }
@@ -1411,6 +2147,147 @@
     // 在控制台打个招呼（按 F12 可以看到）
     console.log('🛵 骑手地图已就绪！');
     console.log('已有标记：' + markers.length + ' 个');
+
+    // ====== 好友分享系统 ======
+    var myNickname = localStorage.getItem('rider-nickname') || '';
+    var myAvatarUrl = localStorage.getItem('rider-avatar') || '';
+    var friends = JSON.parse(localStorage.getItem('rider-friends') || '{}');
+    var friendMarks = {};
+
+    function updateProfileUI() {
+      var ub = document.getElementById('user-btn');
+      var ai = document.getElementById('my-avatar-img');
+      var at = document.getElementById('my-avatar-txt');
+      if (myAvatarUrl) {
+        if (ub) ub.innerHTML = '<img src=\"' + myAvatarUrl + '\" style=\"width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;\">';
+        if (ai) { ai.style.display = 'block'; ai.src = myAvatarUrl; }
+        if (at) at.style.display = 'none';
+      } else if (myNickname) {
+        if (ub) ub.textContent = myNickname.substring(0, 2);
+        if (ai) ai.style.display = 'none';
+        if (at) { at.style.display = 'flex'; at.textContent = myNickname.substring(0, 2); }
+      }
+      if (!myAvatarUrl && !myNickname && ub) ub.textContent = '👤';
+      var nn = document.getElementById('my-nickname');
+      if (nn) nn.value = myNickname;
+    }
+
+    function uploadAvatar() {
+      var file = document.getElementById('avatar-file').files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          // Canvas 裁剪居中 + 压缩到 128x128
+          var size = Math.min(img.width, img.height);
+          var sx = (img.width - size) / 2;
+          var sy = (img.height - size) / 2;
+          var canvas = document.createElement('canvas');
+          canvas.width = 128; canvas.height = 128;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, size, size, 0, 0, 128, 128);
+          myAvatarUrl = canvas.toDataURL('image/jpeg', 0.7);
+          localStorage.setItem('rider-avatar', myAvatarUrl);
+          updateProfileUI();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveProfile() {
+      var n = document.getElementById('my-nickname').value.trim();
+      if (!n) return;
+      myNickname = n;
+      localStorage.setItem('rider-nickname', n);
+      updateProfileUI();
+    }
+
+    updateProfileUI();
+
+    function showShareCode() {
+      if (!myNickname) return;
+      var data = JSON.stringify({ n: myNickname, m: markers, r: routes });
+      var code = btoa(unescape(encodeURIComponent(data)));
+      document.getElementById('share-result').style.display = 'block';
+      document.getElementById('share-code').value = code;
+    }
+
+    function copyShareCode() {
+      var el = document.getElementById('share-code');
+      el.select();
+      document.execCommand('copy');
+    }
+
+    function importFriend() {
+      var code = document.getElementById('friend-code').value.trim();
+      if (!code) return;
+      try {
+        var d = JSON.parse(decodeURIComponent(escape(atob(code))));
+        if (!d.n || !d.m) return;
+        friends[d.n] = code;
+        localStorage.setItem('rider-friends', JSON.stringify(friends));
+        friendMarks[d.n] = d.m;
+        document.getElementById('friend-code').value = '';
+        updateFriendUI();
+      } catch(e) {}
+    }
+
+    function removeFriend(name) {
+      delete friends[name];
+      localStorage.setItem('rider-friends', JSON.stringify(friends));
+      delete friendMarks[name];
+      updateFriendUI();
+      renderMapMarkers();
+    }
+
+    function updateFriendUI() {
+      var fl = document.getElementById('friend-list');
+      if (!fl) return;
+      var names = Object.keys(friends);
+      if (names.length === 0) { fl.innerHTML = '还没有好友'; }
+      else {
+        fl.innerHTML = '';
+        names.forEach(function(n) {
+          var d = document.createElement('div');
+          d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;';
+          d.innerHTML = '<span style=color:#333;font-size:12px>' + n + '</span><button onclick=removeFriend(' + JSON.stringify(n) + ') style=background:none;border:none;color:#e74c3c;cursor:pointer;font-size:11px>删除</button>';
+          fl.appendChild(d);
+        });
+      }
+    }
+
+    function loadAllFriendMarks() {
+      Object.keys(friends).forEach(function(n) {
+        try {
+          var d = JSON.parse(decodeURIComponent(escape(atob(friends[n]))));
+          friendMarks[n] = d.m || [];
+        } catch(e) {}
+      });
+      updateFriendUI();
+    }
+
+    // 在 renderMapMarkers 之后画好友标记（紫色钉）
+    var origRMM2 = renderMapMarkers;
+    renderMapMarkers = function() {
+      origRMM2();
+      Object.keys(friendMarks).forEach(function(name) {
+        friendMarks[name].forEach(function(fm) {
+          var fIcon = L.divIcon({
+            html: '<div style=\"background:#8e44ad;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);\"><div style=\"background:white;width:6px;height:6px;border-radius:50%;position:relative;top:6px;left:6px;\"></div></div>',
+            className: '', iconSize: [28,28], iconAnchor: [14,30], popupAnchor: [0,-32]
+          });
+          L.marker([fm.lat, fm.lng], { icon: fIcon, zIndexOffset: 50 }).addTo(map)
+            .bindPopup('<div style=min-width:160px><b>好友: ' + name + '</b><p style=margin-top:6px;color:#333;font-size:12px>' + (fm.note||'') + '</p><small style=color:#999>' + (fm.locationName||'') + '</small></div>');
+        });
+      });
+    };
+
+    loadAllFriendMarks();
+    updateFriendUI();
+    updateProfileUI();
+    // ====== 好友分享系统结束 ======
   </script>
 
 </body>

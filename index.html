@@ -1829,16 +1829,18 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       }
     }
 
-    function buildLegendHtml(segDists, segColors) {
+    function buildLegendHtml(segDists, segColors, route) {
       var html = '', total = 0, allDone = true;
       for (var i = 0; i < segDists.length; i++) {
         var d = segDists[i];
+        var sc = segColors[i % segColors.length];
         if (d) {
-          html += '<span style="color:' + segColors[i % segColors.length] + ';">━━━━</span>'
-            + ' <span style="color:#333;">' + (d / 1000).toFixed(1) + ' km</span><br>';
+          html += '<span style="color:' + sc + ';">━━━━</span>'
+            + ' <span style="color:#333;">' + (d / 1000).toFixed(1) + ' km</span>'
+            + ' <button onclick="navigateSeg(' + route.id + ',' + i + ')" style="background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">🚌</button><br>';
           total += d;
         } else {
-          html += '<span style="color:' + segColors[i % segColors.length] + ';">━━━━</span>'
+          html += '<span style="color:' + sc + ';">━━━━</span>'
             + ' <span style="color:#999;">加载中…</span><br>';
           allDone = false;
         }
@@ -1847,6 +1849,20 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         html += '<b>共 ' + (total / 1000).toFixed(1) + ' km</b>';
       }
       return html;
+    }
+
+    function navigateSeg(routeId, segIdx) {
+      var route = routes.find(function(r) { return r.id === routeId; });
+      if (!route) return;
+      var from = markers[route.stops[segIdx]];
+      var to = markers[route.stops[segIdx + 1]];
+      if (!from || !to) return;
+      function sName(m) { return encodeURIComponent(m.locationName || getFirstTag(m)); }
+      var url = 'https://uri.amap.com/navigation?from='
+        + from.lng + ',' + from.lat + ',' + sName(from)
+        + '&to=' + to.lng + ',' + to.lat + ',' + sName(to)
+        + '&mode=transit';
+      location.href = url;
     }
 
     function clearRouteLines() {
@@ -1958,8 +1974,6 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           + '<div class="card-body" onclick="viewRoute(' + route.id + ')">'
           + '<button class="route-delete" onclick="event.stopPropagation();deleteRoute(' + route.id + ')" title="删除">×</button>'
           + '<button class="route-delete" style="color:#2196F3;" onclick="event.stopPropagation();editRoute(' + route.id + ')" title="加点">＋</button>'
-          + '<button class="route-delete" style="color:#27ae60;" onclick="event.stopPropagation();navigateRoute(' + route.id + ',\'walking\')" title="高德步行导航">🚶</button>'
-          + '<button class="route-delete" style="color:#e74c3c;" onclick="event.stopPropagation();navigateRoute(' + route.id + ',\'bicycling\')" title="高德骑行导航">🚴</button>'
           + '<div class="route-path">' + pathHtml + '</div>'
           + noteHtml
           + '<div class="route-info"><span>🛵 ' + route.stops.length + ' 站</span>'
@@ -1989,7 +2003,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         var d = L.DomUtil.create('div', '');
         d.id = 'route-legend';
         d.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
-          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors) + '</div>';
+          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors, route) + '</div>';
         return d;
       };
       legend.addTo(map);
@@ -1998,7 +2012,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       function updateLegend() {
         var el = document.getElementById('route-legend');
         if (el) el.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
-          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors) + '</div>';
+          + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors, route) + '</div>';
       }
 
       // 画每段直线虚线 + 异步获取步行路径
@@ -2075,13 +2089,6 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         + stops[0].lng + ',' + stops[0].lat + ',' + sName(stops[0])
         + '&to=' + stops[stops.length - 1].lng + ',' + stops[stops.length - 1].lat + ',' + sName(stops[stops.length - 1])
         + '&mode=' + mode;
-      // 途经点（第2站到倒数第2站）
-      if (stops.length > 2) {
-        var passes = stops.slice(1, -1).map(function(m) {
-          return m.lng + ',' + m.lat + ',' + sName(m);
-        }).join(';');
-        url += '&passes=' + passes;
-      }
       location.href = url;
     }
 

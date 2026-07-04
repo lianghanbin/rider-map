@@ -213,7 +213,10 @@
     /* 遮罩层：默认隐藏 */
     .overlay {
       display: none;
+      position: absolute; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.4); z-index: 550;
     }
+    .overlay.show { display: block; }
     /* 关闭按钮：宽屏下隐藏，窄屏显示 */
     .sidebar-close-btn {
       display: none;
@@ -664,20 +667,6 @@
         display: none;                 /* 侧边栏展开后隐藏按钮 */
       }
 
-      /* 遮罩层 */
-      .overlay {
-        display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.4);
-        z-index: 550;
-      }
-      .overlay.show {
-        display: block;
-      }
     }
     /* 用户按钮 */
     .user-btn {
@@ -740,7 +729,7 @@
             <div style="font-size:10px;color:#999;margin-top:4px;">点击更换头像</div>
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
-          <input type="text" id="my-nickname" placeholder="你的昵称" onchange="saveProfile()" onblur="saveProfile()">
+          <input type="text" id="my-nickname" placeholder="你的昵称" oninput="saveProfile()">
           <button class="btn btn-gray" onclick="showShareCode()">📤 生成分享码</button>
           <div id="share-result" style="margin-top:8px;font-size:12px;display:none;">
             <input type="text" id="share-code" readonly style="font-size:11px;margin-bottom:4px;">
@@ -760,7 +749,7 @@
     <button class="hamburger-btn" id="hamburger-btn" onclick="openSidebar()">☰</button>
 
     <!-- 遮罩层（点击关闭侧边栏） -->
-    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+    <div class="overlay" id="overlay" onclick="closeSidebar();if(window.innerWidth<=600)closeLeftPanel()"></div>
 
     <!-- 地图容器 -->
     <div id="map">
@@ -823,8 +812,8 @@
 
     // ---------- 第零步：左侧面板 ----------
 if(window.innerWidth>600)document.getElementById('left-panel').classList.add('open');
-function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){p.classList.remove('open');return;}p.classList.add('open');closeSidebar();}else{p.classList.toggle('open');}}
-function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');}
+function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){closeLeftPanel();return;}p.classList.add('open');document.getElementById('overlay').classList.add('show');closeSidebar();}else{p.classList.toggle('open');}}
+function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
 // ---------- 第一步：初始化地图 ----------
 
     const map = L.map('map').setView([31.23, 121.47], 12);
@@ -890,6 +879,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     // 从 localStorage 读取已保存的标记
     let markers = JSON.parse(localStorage.getItem('rider-markers') || '[]');
+    var friendMarks = {};  // 好友标记，提前初始化
 
     // 已规划路线
     let routes = JSON.parse(localStorage.getItem('rider-routes') || '[]');
@@ -1186,6 +1176,11 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       tagNames.forEach(function(t) {
         filterHtml += '<button class="tag-filter-btn' + (activeTagFilters.has(t) ? ' active' : '') + '" onclick="toggleTagFilter(\'' + esc(t) + '\')">' + escapeHtml(t) + ' (' + allTags[t] + ')</button>';
       });
+      // 好友名作为标签加入筛选
+      Object.keys(friendMarks).forEach(function(fn) {
+        var fCount = friendMarks[fn].length;
+        filterHtml += '<button class="tag-filter-btn' + (activeTagFilters.has('@' + fn) ? ' active' : '') + '" onclick="toggleTagFilter(\'@' + esc(fn) + '\')" style="background:#f3e5f5;color:#7b1fa2;">👤 ' + escapeHtml(fn) + ' (' + fCount + ')</button>';
+      });
       document.getElementById('tag-filters').innerHTML = filterHtml;
 
       // 第二步：筛选 + 搜索
@@ -1217,7 +1212,8 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       document.getElementById('toolbar-actions').style.display = markers.length === 0 ? 'none' : '';
 
       // 第三步：渲染卡片
-      if (filtered.length === 0) {
+      var hasFriends = Object.keys(friendMarks).length > 0;
+      if (filtered.length === 0 && !hasFriends) {
         listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 16px;font-size:14px;">没有匹配的结果</div>';
         return;
       }
@@ -1253,6 +1249,40 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           </div>
         `;
       }).join('');
+
+      // 好友标记卡片（紫色边框，只在未筛选或选了好友时显示)
+      var friendHtml = '';
+      Object.keys(friendMarks).forEach(function(friendName) {
+        // 有标签筛选时，只有选中的好友才显示
+        if (activeTagFilters.size > 0 && !activeTagFilters.has('@' + friendName)) return;
+        // 关键词过滤
+        if (keyword) {
+          var nameMatch = friendName.toLowerCase().indexOf(keyword) >= 0;
+          var anyMatch = friendMarks[friendName].some(function(fm) {
+            var loc = (fm.locationName || '').toLowerCase();
+            var tags = (fm.tags || []).join(' ').toLowerCase();
+            var note = (fm.note || '').toLowerCase();
+            return loc.indexOf(keyword) >= 0 || tags.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
+          });
+          if (!nameMatch && !anyMatch) return;
+        }
+        friendMarks[friendName].forEach(function(fm) {
+          var ftags = (fm.tags || ['未分类']).map(function(t) {
+            return '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#f3e5f5;color:#7b1fa2;">' + escapeHtml(t) + '</span>';
+          }).join('');
+          var fnote = fm.note ? '<div class="note" style="color:#555;">📝 ' + escapeHtml(fm.note) + '</div>' : '';
+          var floc = fm.locationName ? '<div class="loc-name" style="color:#333;">' + escapeHtml(fm.locationName) + '</div>' : '';
+          friendHtml += '<div class="marker-card" style="border-left-color:#8e44ad;opacity:0.9;">'
+            + '<div class="card-body" style="cursor:pointer;" onclick="map.flyTo([' + fm.lat + ',' + fm.lng + '],16);if(window.innerWidth<=600)closeSidebar();">'
+            + (friendAvatars[friendName] ? '<img src=\"' + friendAvatars[friendName] + '\" style=\"width:16px;height:16px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;\">' : '')
+            + '<span style="display:inline-block;background:#8e44ad;color:white;font-size:9px;padding:2px 6px;border-radius:3px;margin-bottom:4px;">👤 ' + escapeHtml(friendName) + '</span>'
+            + floc
+            + '<div style="margin-bottom:4px;">' + ftags + '</div>'
+            + fnote
+            + '</div></div>';
+        });
+      });
+      listEl.innerHTML += friendHtml;
 
       // 批量删除栏
       var actionBar = document.getElementById('batch-actions');
@@ -1342,8 +1372,12 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     // ---------- 第五步：交互操作 ----------
 
-    // 点击地图：添加标记
+    // 窄屏：点击地图空白处关闭左面板
     map.on('click', function(e) {
+      if (window.innerWidth <= 600 && document.getElementById('left-panel').classList.contains('open')) {
+        closeLeftPanel();
+        return;
+      }
       showMarkerForm(e.latlng.lat, e.latlng.lng, function(newMarker) {
         // 加上时间戳
         newMarker.time = Date.now();
@@ -2157,10 +2191,11 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     console.log('已有标记：' + markers.length + ' 个');
 
     // ====== 好友分享系统 ======
+    var friendMarks = {};
     var myNickname = localStorage.getItem('rider-nickname') || '';
     var myAvatarUrl = localStorage.getItem('rider-avatar') || '';
     var friends = JSON.parse(localStorage.getItem('rider-friends') || '{}');
-    var friendMarks = {};
+    var friendAvatars = JSON.parse(localStorage.getItem('rider-friend-avatars') || '{}');
 
     function updateProfileUI() {
       var ub = document.getElementById('user-btn');
@@ -2205,19 +2240,24 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     }
 
     function saveProfile() {
-      var n = document.getElementById('my-nickname').value.trim();
-      if (!n) return;
-      myNickname = n;
-      localStorage.setItem('rider-nickname', n);
-      updateProfileUI();
+      try {
+        var el = document.getElementById('my-nickname');
+        if (!el) return;
+        var n = el.value.trim();
+        if (!n) return;
+        myNickname = n;
+        localStorage.setItem('rider-nickname', n);
+        if (window._saveTimer) clearTimeout(window._saveTimer);
+        window._saveTimer = setTimeout(function() { updateProfileUI(); }, 300);
+      } catch(e) { console.error('saveProfile error:', e); }
     }
 
     updateProfileUI();
 
     function showShareCode() {
       if (!myNickname) return;
-      var data = JSON.stringify({ n: myNickname, m: markers, r: routes });
-      var code = btoa(unescape(encodeURIComponent(data)));
+      var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: markers, r: routes });
+      var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
       document.getElementById('share-result').style.display = 'block';
       document.getElementById('share-code').value = code;
     }
@@ -2232,13 +2272,16 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var code = document.getElementById('friend-code').value.trim();
       if (!code) return;
       try {
-        var d = JSON.parse(decodeURIComponent(escape(atob(code))));
+        var d = JSON.parse(decodeURIComponent(atob(code).split('').map(function(c){return '%'+c.charCodeAt(0).toString(16)}).join('')));
         if (!d.n || !d.m) return;
         friends[d.n] = code;
+        if (d.a) friendAvatars[d.n] = d.a;
         localStorage.setItem('rider-friends', JSON.stringify(friends));
+        localStorage.setItem('rider-friend-avatars', JSON.stringify(friendAvatars));
         friendMarks[d.n] = d.m;
         document.getElementById('friend-code').value = '';
         updateFriendUI();
+        renderMapMarkers();
       } catch(e) {}
     }
 
@@ -2260,7 +2303,8 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         names.forEach(function(n) {
           var d = document.createElement('div');
           d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;';
-          d.innerHTML = '<span style=color:#333;font-size:12px>' + n + '</span><button onclick=removeFriend(' + JSON.stringify(n) + ') style=background:none;border:none;color:#e74c3c;cursor:pointer;font-size:11px>删除</button>';
+          var fav = friendAvatars[n] ? '<img src=\"' + friendAvatars[n] + '\" style=\"width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;\">' : '';
+          d.innerHTML = fav + '<span style=color:#333;font-size:12px>' + n + '</span><button onclick=removeFriend(' + JSON.stringify(n) + ') style=background:none;border:none;color:#e74c3c;cursor:pointer;font-size:11px>删除</button>';
           fl.appendChild(d);
         });
       }

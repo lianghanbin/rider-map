@@ -1916,7 +1916,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var to = markers[route.stops[segIdx + 1]];
       if (!from || !to) return;
       function sName(m) { return encodeURIComponent(m.locationName || getFirstTag(m)); }
-      var url = 'https://uri.amap.com/navigation?from='
+      var url = 'https://uri.amap.com/navigation?callNative=1&from='
         + from.lng + ',' + from.lat + ',' + sName(from)
         + '&to=' + to.lng + ',' + to.lat + ',' + sName(to)
         + '&mode=bus&policy=1';
@@ -2145,7 +2145,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       if (stops.length < 2) { alert('路线站点不足'); return; }
       function sName(m) { return encodeURIComponent(m.locationName || getFirstTag(m)); }
       // from = 第1站, to = 最后1站, passes = 中间站
-      var url = 'https://uri.amap.com/navigation?from='
+      var url = 'https://uri.amap.com/navigation?callNative=1&from='
         + stops[0].lng + ',' + stops[0].lat + ',' + sName(stops[0])
         + '&to=' + stops[stops.length - 1].lng + ',' + stops[stops.length - 1].lat + ',' + sName(stops[stops.length - 1])
         + '&mode=' + mode;

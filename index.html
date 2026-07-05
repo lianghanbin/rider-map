@@ -446,59 +446,32 @@
     }
 
     /* 标签预设栏 */
-    .preset-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 4px;
-    }
+    .preset-bar { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .preset-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      font-size: 11px;
-      padding: 2px 6px;
-      background: #f0f0f0;
-      border-radius: 10px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      display:inline-flex; align-items:center; font-size:12px;
+      padding:6px 10px; background:#f2f3f5; border-radius:16px;
+      cursor:pointer; -webkit-tap-highlight-color:transparent;
+      transition:all .15s; border:1.5px solid transparent;
+      font-weight:500; color:#555; user-select:none;
     }
-    .preset-chip:hover {
-      background: #1a1a2e;
-      color: white;
-    }
+    .preset-chip:hover { background:#e8eaed; border-color:#d0d3d7; }
     .preset-chip.selected {
-      background: #1a1a2e;
-      color: white;
-      font-weight: bold;
+      background:#1a1a2e; color:white; font-weight:600; border-color:#1a1a2e;
     }
-    .preset-chip.selected .preset-del {
-      color: rgba(255,255,255,0.7);
+    .preset-del {
+      font-size:16px; width:24px; height:24px; padding:0; margin-left:6px;
+      border:none; background:transparent; cursor:pointer; line-height:24px;
+      text-align:center; color:#bbb; border-radius:50%; transition:all .15s;
     }
-      font-size: 12px;
-      padding: 0 2px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      line-height: 1;
-      color: #999;
-    }
-    .preset-chip:hover .preset-del {
-      color: white;
-    }
+    .preset-del:hover { background:rgba(0,0,0,.06); color:#e74c3c; }
+    .preset-chip.selected .preset-del { color:rgba(255,255,255,.5); }
+    .preset-chip.selected .preset-del:hover { background:rgba(255,255,255,.12); color:#fff; }
     .preset-add-btn {
-      font-size: 11px;
-      padding: 2px 8px;
-      border: 1px dashed #ccc;
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-      color: #999;
+      font-size:12px; padding:6px 10px; border:1.5px dashed #ccc;
+      border-radius:16px; background:transparent; cursor:pointer;
+      color:#999; font-weight:500; transition:all .15s;
     }
-    .preset-add-btn:hover {
-      border-color: #1a1a2e;
-      color: #1a1a2e;
-    }
+    .preset-add-btn:hover { border-color:#1a1a2e; color:#1a1a2e; background:#f8f8f9; }
     .popup-form .btn-row {
       display: flex;
       gap: 8px;
@@ -518,7 +491,7 @@
       color: white;
     }
     .btn-save:hover {
-      background: #e55d00;
+      background: #0f3460;
     }
     .btn-cancel {
       background: #eee;

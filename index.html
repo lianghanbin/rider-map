@@ -736,11 +736,8 @@
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
           <input type="text" id="my-nickname" placeholder="你的昵称" oninput="saveProfile()">
-          <button class="btn btn-gray" onclick="showShareCode()">📤 生成分享码</button>
-          <div id="share-result" style="margin-top:8px;font-size:12px;display:none;">
-            <input type="text" id="share-code" readonly style="font-size:11px;margin-bottom:4px;">
-            <button class="btn btn-gray" onclick="copyShareCode()" style="font-size:11px;">复制分享码</button>
-          </div>
+          <button class="btn btn-gray" onclick="showAndCopyShareCode()">📤 复制分享码</button>
+          <div id="share-result" style="margin-top:4px;font-size:11px;color:#27ae60;display:none;">✅ 已复制</div>
           <hr style="margin:12px 0;border-color:#eee">
           <h3 style="font-size:14px;">好友笔记</h3>
           <div id="friend-list" style="font-size:12px;color:#999;">还没有好友笔记</div>
@@ -1321,11 +1318,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: selMarks, r: [] });
       var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
       // 显示分享码
-      document.getElementById('share-result').style.display = 'block';
-      document.getElementById('share-code').value = code;
-      document.getElementById('share-code').select();
-      document.execCommand('copy');
-      alert('已复制 ' + selMarks.length + ' 个标记的分享码！');
+      copyToClipboard(code); alert('已复制 ' + selMarks.length + ' 个标记的分享码！');
       selectedMarkers.clear();
       renderMarkerList();
     }
@@ -2178,11 +2171,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var selRoutes = routes.filter(function(r) { return selectedRoutes.has(r.id); });
       var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: [], r: selRoutes });
       var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
-      document.getElementById('share-result').style.display = 'block';
-      document.getElementById('share-code').value = code;
-      document.getElementById('share-code').select();
-      document.execCommand('copy');
-      alert('已复制 ' + selRoutes.length + ' 条路线的分享码！');
+      copyToClipboard(code); alert('已复制 ' + selRoutes.length + ' 条路线的分享码！');
       selectedRoutes.clear();
       renderRouteList();
     }
@@ -2302,18 +2291,20 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     updateProfileUI();
 
-    function showShareCode() {
+    function showAndCopyShareCode() {
       if (!myNickname) return;
       var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: markers, r: routes });
       var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
+      copyToClipboard(code);
       document.getElementById('share-result').style.display = 'block';
-      document.getElementById('share-code').value = code;
+      setTimeout(function() { document.getElementById('share-result').style.display = 'none'; }, 2000);
     }
 
-    function copyShareCode() {
-      var el = document.getElementById('share-code');
-      el.select();
-      document.execCommand('copy');
+    function copyToClipboard(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
     }
 
     function importFriend() {

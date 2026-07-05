@@ -667,7 +667,7 @@
       .hamburger-header { display: flex !important; position:absolute; right:10px; top:50%; transform:translateY(-50%); align-items:center; justify-content:center; width:32px; height:32px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4); border-radius:4px; cursor:pointer; font-size:18px; }
       .hamburger-btn { display: none !important; }
       .header { padding-left: 44px; padding-right: 44px; }
-      .user-btn { display: inline-block !important; }
+      .user-btn, #hide-own-btn { display: inline-block !important; }
       .hamburger-btn.hidden {
         display: none;                 /* 侧边栏展开后隐藏按钮 */
       }
@@ -709,7 +709,7 @@
   <div class="header">
     <button class="hamburger-header" id="hb-header" onclick="openSidebar()" style="display:none;position:absolute;right:16px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:4px;cursor:pointer;font-size:16px;padding:4px 8px;">☰</button>
 <button class="user-btn" id="user-btn" onclick="toggleAuth()" style="position:absolute;left:16px;display:inline-block;">👤</button>
-    <div class="search-box">
+        <div class="search-box">
       <input type="text" id="search-input" placeholder="搜索地址…"
         oninput="showInputSuggestions()"
         onkeydown="handleSearchKey(event)"
@@ -728,7 +728,8 @@
     <div class="left-panel" id="left-panel">
       <div class="ps" id="panel-content">
         <div id="profile-view">
-          <div style="text-align:center;margin-bottom:8px;cursor:pointer;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
+          <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
+            <button id="hide-own-btn" onclick="event.stopPropagation();toggleHideOwn()" style="position:absolute;top:0;right:0;background:#ddd;color:#666;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;">隐藏</button>
             <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #ff6b00;display:none;">
             <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:#ff6b00;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;"></div>
             <div style="font-size:10px;color:#999;margin-top:4px;">点击更换头像</div>
@@ -741,10 +742,10 @@
             <button class="btn btn-gray" onclick="copyShareCode()" style="font-size:11px;">复制分享码</button>
           </div>
           <hr style="margin:12px 0;border-color:#eee">
-          <h3 style="font-size:14px;">好友列表</h3>
-          <div id="friend-list" style="font-size:12px;color:#999;">还没有好友</div>
-          <input type="text" id="friend-code" placeholder="输入好友的分享码" style="margin-top:8px;">
-          <button class="btn btn-orange" onclick="importFriend()">添加好友</button>
+          <h3 style="font-size:14px;">好友笔记</h3>
+          <div id="friend-list" style="font-size:12px;color:#999;">还没有好友笔记</div>
+          <input type="text" id="friend-code" placeholder="输入好友笔记的分享码" style="margin-top:8px;">
+          <button class="btn btn-orange" onclick="importFriend()">添加好友笔记</button>
           <div class="msg" id="auth-msg"></div>
         </div>
       </div>
@@ -884,7 +885,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     // 从 localStorage 读取已保存的标记
     let markers = JSON.parse(localStorage.getItem('rider-markers') || '[]');
-    var friendMarks = {};  // 好友标记，提前初始化
+    var friendMarks = {};
+    var selectedFriends = new Set();
+    var hideOwnMarkers = false;
 
     // 已规划路线
     let routes = JSON.parse(localStorage.getItem('rider-routes') || '[]');
@@ -1174,17 +1177,20 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           allTags[t] = (allTags[t] || 0) + 1;
         });
       });
+      // 选中的好友的标记标签加入
+      selectedFriends.forEach(function(fn) {
+        (friendMarks[fn] || []).forEach(function(fm) {
+          (fm.tags || []).forEach(function(t) {
+            allTags[t] = (allTags[t] || 0) + 1;
+          });
+        });
+      });
       var tagNames = Object.keys(allTags).sort();
 
       var esc = function(s) { return escapeHtml(s).replace(/'/g, "\\'"); };
       var filterHtml = '<button class="tag-filter-btn' + (activeTagFilters.size === 0 ? ' active' : '') + '" onclick="clearTagFilters()">全部 (' + markers.length + ')</button>';
       tagNames.forEach(function(t) {
         filterHtml += '<button class="tag-filter-btn' + (activeTagFilters.has(t) ? ' active' : '') + '" onclick="toggleTagFilter(\'' + esc(t) + '\')">' + escapeHtml(t) + ' (' + allTags[t] + ')</button>';
-      });
-      // 好友名作为标签加入筛选
-      Object.keys(friendMarks).forEach(function(fn) {
-        var fCount = friendMarks[fn].length;
-        filterHtml += '<button class="tag-filter-btn' + (activeTagFilters.has('@' + fn) ? ' active' : '') + '" onclick="toggleTagFilter(\'@' + esc(fn) + '\')" style="background:#f3e5f5;color:#7b1fa2;">👤 ' + escapeHtml(fn) + ' (' + fCount + ')</button>';
       });
       document.getElementById('tag-filters').innerHTML = filterHtml;
 
@@ -1194,10 +1200,10 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         return;
       }
 
-      var filtered = [...markers].reverse();  // 按时间倒序
+      var filtered = hideOwnMarkers ? [] : [...markers].reverse();
 
       // 标签筛选（多选：任意标签匹配就显示）
-      if (activeTagFilters.size > 0) {
+      if (!hideOwnMarkers && activeTagFilters.size > 0) {
         filtered = filtered.filter(function(m) {
           return getTags(m).some(function(t) { return activeTagFilters.has(t); });
         });
@@ -1217,8 +1223,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       document.getElementById('toolbar-actions').style.display = markers.length === 0 ? 'none' : '';
 
       // 第三步：渲染卡片
-      var hasFriends = Object.keys(friendMarks).length > 0;
-      if (filtered.length === 0 && !hasFriends) {
+      if (filtered.length === 0 && selectedFriends.size === 0) {
         listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 16px;font-size:14px;">没有匹配的结果</div>';
         return;
       }
@@ -1255,39 +1260,32 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         `;
       }).join('');
 
-      // 好友标记卡片（紫色边框，只在未筛选或选了好友时显示)
-      var friendHtml = '';
-      Object.keys(friendMarks).forEach(function(friendName) {
-        // 有标签筛选时，只有选中的好友才显示
-        if (activeTagFilters.size > 0 && !activeTagFilters.has('@' + friendName)) return;
-        // 关键词过滤
-        if (keyword) {
-          var nameMatch = friendName.toLowerCase().indexOf(keyword) >= 0;
-          var anyMatch = friendMarks[friendName].some(function(fm) {
-            var loc = (fm.locationName || '').toLowerCase();
-            var tags = (fm.tags || []).join(' ').toLowerCase();
-            var note = (fm.note || '').toLowerCase();
-            return loc.indexOf(keyword) >= 0 || tags.indexOf(keyword) >= 0 || note.indexOf(keyword) >= 0;
+      // 好友标记从左侧面板选中后在地图显示
+
+      // 好友选中时在列表追加好友标记
+      if (selectedFriends.size > 0) {
+        var friendHtml = '';
+        selectedFriends.forEach(function(fn) {
+          var fms = friendMarks[fn] || [];
+          var fc = friendColors[fn] || '#8e44ad';
+          fms.forEach(function(fm) {
+            // 标签筛选
+            if (activeTagFilters.size > 0) {
+              var hasTag = (fm.tags || []).some(function(t) { return activeTagFilters.has(t); });
+              if (!hasTag) return;
+            }
+            friendHtml += '<div class="marker-card" style="border-left-color:' + fc + ';opacity:0.9;">'
+              + '<div class="card-body" style="cursor:pointer;" onclick="map.flyTo([' + fm.lat + ',' + fm.lng + '],16);if(window.innerWidth<=600)closeSidebar();">'
+              + (friendAvatars[fn] ? '<img src=\"' + friendAvatars[fn] + '\" style=\"width:16px;height:16px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;\">' : '')
+              + '<span style=\"display:inline-block;background:' + fc + ';color:white;font-size:9px;padding:2px 6px;border-radius:3px;margin-bottom:4px;\">' + escapeHtml(fn) + '</span>'
+              + (fm.locationName ? '<div class=\"loc-name\" style=\"color:#333;\">' + escapeHtml(fm.locationName) + '</div>' : '')
+              + '<div style=\"margin-bottom:4px;\">' + ((fm.tags||['未分类']).map(function(t){return '<span style=\"display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:' + fc + '22;color:' + fc + ';\">' + escapeHtml(t) + '</span>';}).join('')) + '</div>'
+              + (fm.note ? '<div class=\"note\" style=\"color:#555;\">📝 ' + escapeHtml(fm.note) + '</div>' : '')
+              + '</div></div>';
           });
-          if (!nameMatch && !anyMatch) return;
-        }
-        friendMarks[friendName].forEach(function(fm) {
-          var ftags = (fm.tags || ['未分类']).map(function(t) {
-            return '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#f3e5f5;color:#7b1fa2;">' + escapeHtml(t) + '</span>';
-          }).join('');
-          var fnote = fm.note ? '<div class="note" style="color:#555;">📝 ' + escapeHtml(fm.note) + '</div>' : '';
-          var floc = fm.locationName ? '<div class="loc-name" style="color:#333;">' + escapeHtml(fm.locationName) + '</div>' : '';
-          friendHtml += '<div class="marker-card" style="border-left-color:#8e44ad;opacity:0.9;">'
-            + '<div class="card-body" style="cursor:pointer;" onclick="map.flyTo([' + fm.lat + ',' + fm.lng + '],16);if(window.innerWidth<=600)closeSidebar();">'
-            + (friendAvatars[friendName] ? '<img src=\"' + friendAvatars[friendName] + '\" style=\"width:16px;height:16px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;\">' : '')
-            + '<span style="display:inline-block;background:#8e44ad;color:white;font-size:9px;padding:2px 6px;border-radius:3px;margin-bottom:4px;">👤 ' + escapeHtml(friendName) + '</span>'
-            + floc
-            + '<div style="margin-bottom:4px;">' + ftags + '</div>'
-            + fnote
-            + '</div></div>';
         });
-      });
-      listEl.innerHTML += friendHtml;
+        listEl.innerHTML += friendHtml;
+      }
 
       // 批量删除栏
       var actionBar = document.getElementById('batch-actions');
@@ -2243,6 +2241,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     var myAvatarUrl = localStorage.getItem('rider-avatar') || '';
     var friends = JSON.parse(localStorage.getItem('rider-friends') || '{}');
     var friendAvatars = JSON.parse(localStorage.getItem('rider-friend-avatars') || '{}');
+    var friendColors = JSON.parse(localStorage.getItem('rider-friend-colors') || '{}');
+    var selectedFriends = new Set();
+    var FRIEND_PALETTE = ['#8e44ad','#e74c3c','#2980b9','#27ae60','#f39c12','#e91e63','#00bcd4','#795548'];
 
     function updateProfileUI() {
       var ub = document.getElementById('user-btn');
@@ -2323,8 +2324,14 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (!d.n || !d.m) return;
         friends[d.n] = code;
         if (d.a) friendAvatars[d.n] = d.a;
+        if (!friendColors[d.n]) {
+          var used = Object.values(friendColors);
+          var next = FRIEND_PALETTE.find(function(c) { return used.indexOf(c) === -1; }) || FRIEND_PALETTE[Object.keys(friendColors).length % FRIEND_PALETTE.length];
+          friendColors[d.n] = next;
+        }
         localStorage.setItem('rider-friends', JSON.stringify(friends));
         localStorage.setItem('rider-friend-avatars', JSON.stringify(friendAvatars));
+        localStorage.setItem('rider-friend-colors', JSON.stringify(friendColors));
         friendMarks[d.n] = d.m;
         document.getElementById('friend-code').value = '';
         updateFriendUI();
@@ -2336,25 +2343,95 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       delete friends[name];
       localStorage.setItem('rider-friends', JSON.stringify(friends));
       delete friendMarks[name];
+      selectedFriends.delete(name);
       updateFriendUI();
       renderMapMarkers();
     }
+
+    // 好友列表事件委托
+    var fl2 = document.getElementById('friend-list');
+    if (fl2) fl2.addEventListener('click', function(e) {
+      var delBtn = e.target.closest('.friend-del-btn');
+      if (delBtn) { removeFriend(delBtn.getAttribute('data-friend')); return; }
+      var dot = e.target.closest('.friend-color-dot');
+      if (dot) { e.preventDefault(); cycleFriendColor(dot.getAttribute('data-friend')); return; }
+      var row = e.target.closest('.friend-row');
+      if (row) { toggleFriend(row.getAttribute('data-friend')); }
+    });
 
     function updateFriendUI() {
       var fl = document.getElementById('friend-list');
       if (!fl) return;
       var names = Object.keys(friends);
-      if (names.length === 0) { fl.innerHTML = '还没有好友'; }
+      if (names.length === 0) { fl.innerHTML = '还没有好友笔记'; }
       else {
         fl.innerHTML = '';
         names.forEach(function(n) {
-          var d = document.createElement('div');
-          d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;';
+          var sel = selectedFriends.has(n);
+          var fc = friendColors[n] || '#8e44ad';
           var fav = friendAvatars[n] ? '<img src=\"' + friendAvatars[n] + '\" style=\"width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;\">' : '';
-          d.innerHTML = fav + '<span style=color:#333;font-size:12px>' + n + '</span><button onclick=removeFriend(' + JSON.stringify(n) + ') style=background:none;border:none;color:#e74c3c;cursor:pointer;font-size:11px>删除</button>';
+          var d = document.createElement('div');
+          d.className = 'friend-row';
+          d.setAttribute('data-friend', n);
+          d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:8px;margin-bottom:3px;cursor:pointer;' + (sel ? 'background:' + fc + ';color:white;font-weight:bold;' : 'background:#f5f5f5;');
+          d.innerHTML = '<span class=\"friend-color-dot\" data-friend=\"' + n.replace(/"/g,'&quot;') + '\" style=\"display:inline-block;width:18px;height:18px;border-radius:50%;background:' + fc + ';cursor:pointer;border:2px solid white;flex-shrink:0;\" title=\"点击换颜色\"></span>'
+            + '<span style=\"flex:1;display:flex;align-items:center;gap:4px;font-size:12px;\">' + fav + n + '</span>'
+            + '<button class=\"friend-del-btn\" data-friend=\"' + n.replace(/"/g,'&quot;') + '\" style=\"background:none;border:none;color:' + (sel ? 'rgba(255,255,255,0.8)' : '#e74c3c') + ';cursor:pointer;font-size:13px;padding:4px 8px;\">✕</button>';
           fl.appendChild(d);
         });
       }
+    }
+    function cycleFriendColor(name) {
+      var cur = friendColors[name] || '#8e44ad';
+      var idx = FRIEND_PALETTE.indexOf(cur);
+      var next = FRIEND_PALETTE[(idx + 1) % FRIEND_PALETTE.length];
+      friendColors[name] = next;
+      localStorage.setItem('rider-friend-colors', JSON.stringify(friendColors));
+      updateFriendUI();
+      renderMapMarkers();
+    }
+    function _adoptFriendMarker(friendName, fi) {
+      var fm = (friendMarks[friendName] || [])[fi];
+      if (!fm) return -1;
+      var m = { lat: fm.lat, lng: fm.lng, tags: fm.tags || ['未分类'], note: fm.note || '', locationName: fm.locationName || '', time: Date.now() };
+      markers.push(m);
+      saveMarkers();
+      return markers.length - 1;
+    }
+
+    function adoptAndConnect(friendName, fi) {
+      var idx = _adoptFriendMarker(friendName, fi);
+      if (idx >= 0) connectFromPopup(idx);
+    }
+
+    function adoptAndEdit(friendName, fi) {
+      var idx = _adoptFriendMarker(friendName, fi);
+      if (idx >= 0) setTimeout(function() { editMarker(idx); }, 100);
+    }
+
+    function adoptAndDelete(friendName, fi) {
+      var fms = friendMarks[friendName];
+      if (!fms || !fms[fi]) return;
+      fms.splice(fi, 1);
+      // 同步更新friends存储
+      var code = friends[friendName];
+      try {
+        var d = JSON.parse(decodeURIComponent(atob(code).split('').map(function(c){return '%'+c.charCodeAt(0).toString(16)}).join('')));
+        d.m = fms;
+        var newCode = btoa(encodeURIComponent(JSON.stringify(d)).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
+        friends[friendName] = newCode;
+        localStorage.setItem('rider-friends', JSON.stringify(friends));
+      } catch(e) {}
+      renderMapMarkers();
+      renderMarkerList();
+    }
+
+    function toggleFriend(name) {
+      if (selectedFriends.has(name)) selectedFriends.delete(name);
+      else selectedFriends.add(name);
+      updateFriendUI();
+      renderMapMarkers();
+      renderMarkerList();
     }
 
     function loadAllFriendMarks() {
@@ -2367,18 +2444,39 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       updateFriendUI();
     }
 
-    // 在 renderMapMarkers 之后画好友标记（紫色钉）
+    // 在 renderMapMarkers 之后画选中的好友标记（紫色钉）
+    var hideOwnMarkers = false;
+    function toggleHideOwn() {
+      hideOwnMarkers = !hideOwnMarkers;
+      var btn = document.getElementById('hide-own-btn');
+      if (btn) btn.textContent = hideOwnMarkers ? '显示' : '隐藏';
+      renderMapMarkers();
+      renderMarkerList();
+    }
     var origRMM2 = renderMapMarkers;
     renderMapMarkers = function() {
       origRMM2();
-      Object.keys(friendMarks).forEach(function(name) {
-        friendMarks[name].forEach(function(fm) {
+      if (hideOwnMarkers) {
+        map.eachLayer(function(l) {
+          if (l instanceof L.Marker && (!l.options || l.options.zIndexOffset !== 50)) {
+            try { map.removeLayer(l); } catch(e) {}
+          }
+        });
+      }
+      selectedFriends.forEach(function(name) {
+        if (!friendMarks[name]) return;
+        var fc = friendColors[name] || '#8e44ad';
+        friendMarks[name].forEach(function(fm, fi) {
           var fIcon = L.divIcon({
-            html: '<div style=\"background:#8e44ad;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);\"><div style=\"background:white;width:6px;height:6px;border-radius:50%;position:relative;top:6px;left:6px;\"></div></div>',
+            html: '<div style=\"background:' + fc + ';width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);\"><div style=\"background:white;width:6px;height:6px;border-radius:50%;position:relative;top:6px;left:6px;\"></div></div>',
             className: '', iconSize: [28,28], iconAnchor: [14,30], popupAnchor: [0,-32]
           });
           L.marker([fm.lat, fm.lng], { icon: fIcon, zIndexOffset: 50 }).addTo(map)
-            .bindPopup('<div style=min-width:160px><b>好友: ' + name + '</b><p style=margin-top:6px;color:#333;font-size:12px>' + (fm.note||'') + '</p><small style=color:#999>' + (fm.locationName||'') + '</small></div>');
+            .bindPopup('<div style=min-width:180px><b>好友: ' + name + '</b><div style=\"margin:4px 0\">' + ((fm.tags||['未分类']).map(function(t){return '<span style=\"display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#f3e5f5;color:#7b1fa2;\">'+escapeHtml(t)+'</span>';}).join('')) + '</div><p style=margin-top:4px;color:#333;font-size:12px>' + (fm.note||'') + '</p><small style=color:#999>' + (fm.locationName||'') + '</small><br>'
+            + '<button onclick=\"adoptAndConnect(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">🔗 连线</button>'
+            + '<button onclick=\"adoptAndEdit(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">✏️ 编辑</button>'
+            + '<button onclick=\"adoptAndDelete(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;\">🗑 删除</button>'
+            + '</div>');
         });
       });
     };

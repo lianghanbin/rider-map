@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="地图笔记">
+  <link rel="manifest" href="manifest.json">
   <title>地图笔记</title>
 
   <!-- ========== 引入地图库 Leaflet（本地文件，断网也能用） ========== -->
   <link rel="stylesheet" href="leaflet.css" />
   <script src="leaflet.js"></script>
   <script src="config.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+  </script>
   <script>
     // 兜底：如果 config.js 没加载（部署环境），给个提示但不影响使用
     if (typeof AMAP_KEY === 'undefined') {
@@ -32,25 +39,27 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "微软雅黑", sans-serif;
-      height: 100vh;           /* 占满整个浏览器窗口高度 */
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      background: #1a1a2e;
     }
 
     /* ===== 顶部标题栏 ===== */
     .header {
-      background: #ff6b00;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: white;
-      padding: 12px 20px;
-      font-size: 20px;
-      font-weight: bold;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      justify-content: center;  /* 标题和搜索栏整体居中 */
+      justify-content: center;
       gap: 8px;
       position: relative;
       z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      letter-spacing: 0.5px;
     }
 
     /* ===== 搜索栏 ===== */
@@ -136,25 +145,23 @@
     .locate-btn {
       display: flex;
       position: absolute;
-      bottom: 20px;
-      right: 12px;
+      bottom: 24px;
+      right: 16px;
       z-index: 500;
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: white;
-      border: 1px solid #ddd;
+      border: none;
       font-size: 20px;
       cursor: pointer;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
       -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
     }
-    .locate-btn:active {
-      background: #f0f0f0;
-      transform: scale(0.95);
-    }
+    .locate-btn:active { background: #f5f5f5; transform: scale(0.94); }
     .locate-btn.locating {
       animation: pulse 1s infinite;
     }
@@ -166,37 +173,41 @@
     /* ===== 右侧边栏 ===== */
     .sidebar {
       width: 320px;
-      background: #f8f8f8;
+      background: #fafbfc;
       display: flex;
       flex-direction: column;
-      border-left: 1px solid #ddd;
-      overflow: hidden;       /* 防止内容溢出 */
+      border-left: 1px solid #e8ecf1;
+      overflow: hidden;
     }
 
     .sidebar-header {
       background: #fff;
-      padding: 8px 10px;
-      border-bottom: 1px solid #ddd;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e8ecf1;
       display: flex;
-      gap: 4px;
+      gap: 6px;
       align-items: center;
     }
     .sidebar-tab {
       flex: 1;
-      padding: 6px 8px;
+      padding: 7px 10px;
       border: none;
-      border-radius: 6px;
-      background: #f0f0f0;
+      border-radius: 8px;
+      background: #f0f2f5;
       font-size: 12px;
       cursor: pointer;
       font-family: inherit;
       white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+      font-weight: 500;
+      color: #666;
     }
+    .sidebar-tab:hover { background: #e4e7eb; }
     .sidebar-tab.active {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
-      font-weight: bold;
+      font-weight: 600;
     }
     .tab-panel {
       display: flex;
@@ -223,7 +234,7 @@
     }
 
     .sidebar-header .count {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
       border-radius: 12px;
       padding: 2px 10px;
@@ -252,18 +263,22 @@
     }
     .tag-filter-btn {
       font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      background: #f5f5f5;
+      padding: 4px 10px;
+      border-radius: 14px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
       cursor: pointer;
       white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+      color: #555;
     }
+    .tag-filter-btn:hover { border-color: #1a1a2e; color: #1a1a2e; }
     .tag-filter-btn.active {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
-      border-color: #ff6b00;
+      border-color: #1a1a2e;
+      font-weight: 600;
     }
     .sidebar-search {
       padding: 4px 10px 8px;
@@ -278,7 +293,7 @@
       outline: none;
     }
     .sidebar-search input:focus {
-      border-color: #ff6b00;
+      border-color: #1a1a2e;
     }
     .toolbar-actions {
       padding: 0 10px 8px;
@@ -321,19 +336,19 @@
     /* ===== 单条标记卡片 ===== */
     .marker-card {
       background: white;
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: 10px;
+      padding: 12px 14px;
       margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border-left: 4px solid #ff6b00;
-      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04);
+      border-left: 4px solid #e74c3c;
+      transition: all 0.2s ease;
       display: flex;
       gap: 10px;
       align-items: flex-start;
     }
     .marker-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      transform: translateX(2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
     }
     /* 卡片左边框颜色由 JS 根据标签动态设定 */
 
@@ -348,7 +363,7 @@
       width: 18px;
       height: 18px;
       cursor: pointer;
-      accent-color: #ff6b00;
+      accent-color: #1a1a2e;
       margin: 0;
       flex-shrink: 0;
     }
@@ -449,11 +464,11 @@
       -webkit-tap-highlight-color: transparent;
     }
     .preset-chip:hover {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
     }
     .preset-chip.selected {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
       font-weight: bold;
     }
@@ -481,8 +496,8 @@
       color: #999;
     }
     .preset-add-btn:hover {
-      border-color: #ff6b00;
-      color: #ff6b00;
+      border-color: #1a1a2e;
+      color: #1a1a2e;
     }
     .popup-form .btn-row {
       display: flex;
@@ -499,7 +514,7 @@
       font-weight: bold;
     }
     .btn-save {
-      background: #ff6b00;
+      background: #1a1a2e;
       color: white;
     }
     .btn-save:hover {
@@ -547,13 +562,18 @@
     /* ===== 路线卡片 ===== */
     .route-card {
       background: white;
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: 10px;
+      padding: 12px 14px;
       margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04);
       border-left: 4px solid #2196F3;
       cursor: pointer;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      transition: all 0.2s ease;
     }
+    .route-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
     .route-card .route-path {
       font-size: 12px;
       color: #666;
@@ -693,12 +713,12 @@
     .left-panel h3{margin-bottom:12px;font-size:16px}
     .left-panel input{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit}
     .left-panel .btn{width:100%;padding:10px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:6px}
-    .btn-orange{background:#ff6b00;color:#fff}
+    .btn-orange{background:#1a1a2e;color:#fff}
     .btn-gray{background:#eee;color:#333}
     .left-panel .msg{font-size:12px;color:#e74c3c;text-align:center;min-height:18px}
     .left-panel .stat-row{display:flex;gap:8px}
     .left-panel .stat-card{flex:1;background:#fff;border-radius:8px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .left-panel .stat-card .num{font-size:24px;font-weight:700;color:#ff6b00}
+    .left-panel .stat-card .num{font-size:24px;font-weight:700;color:#1a1a2e}
     .left-panel .stat-card .label{font-size:11px;color:#999;margin-top:4px}
   </style>
 </head>
@@ -730,8 +750,8 @@
         <div id="profile-view">
           <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
             <button id="hide-own-btn" onclick="event.stopPropagation();toggleHideOwn()" style="position:absolute;top:0;right:0;background:#ddd;color:#666;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;">隐藏</button>
-            <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #ff6b00;display:none;">
-            <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:#ff6b00;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;"></div>
+            <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #1a1a2e;display:none;">
+            <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:#1a1a2e;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;"></div>
             <div style="font-size:10px;color:#999;margin-top:4px;">点击更换头像</div>
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
@@ -883,6 +903,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     // 从 localStorage 读取已保存的标记
     let markers = JSON.parse(localStorage.getItem('rider-markers') || '[]');
     var friendMarks = {};
+    var friendRoutes = {};
     var selectedFriends = new Set();
     var hideOwnMarkers = false;
 
@@ -1192,7 +1213,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       document.getElementById('tag-filters').innerHTML = filterHtml;
 
       // 第二步：筛选 + 搜索
-      if (markers.length === 0) {
+      if (markers.length === 0 && selectedFriends.size === 0) {
         listEl.innerHTML = '';
         return;
       }
@@ -1880,7 +1901,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       }
     }
 
-    function buildLegendHtml(segDists, segColors, route) {
+    function buildLegendHtml(segDists, segColors, route, friendName, friendRouteId) {
       var html = '', total = 0, allDone = true;
       for (var i = 0; i < segDists.length; i++) {
         var d = segDists[i];
@@ -1888,7 +1909,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (d) {
           html += '<span style="color:' + sc + ';">━━━━</span>'
             + ' <span style="color:#333;">' + (d / 1000).toFixed(1) + ' km</span>'
-            + ' <button onclick="event.stopPropagation();navigateSeg(' + route.id + ',' + i + ')" style="background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">🚌</button><br>';
+            + ' <button onclick="event.stopPropagation();' + (friendName ? ('navigateFriendSeg(' + JSON.stringify(friendName) + ',' + friendRouteId + ',' + i + ')' ) : ('navigateSeg(' + route.id + ',' + i + ')')) + '" style="background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">🚌</button><br>';
           total += d;
         } else {
           html += '<span style="color:' + sc + ';">━━━━</span>'
@@ -1900,6 +1921,19 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         html += '<b>共 ' + (total / 1000).toFixed(1) + ' km</b>';
       }
       return html;
+    }
+
+    function navigateFriendSeg(friendName, routeId, segIdx) {
+      var frs = friendRoutes[friendName] || [];
+      var fr = frs.find(function(r) { return r.id === routeId; });
+      if (!fr) return;
+      var fms = friendMarks[friendName] || [];
+      var from = fms[fr.stops[segIdx]];
+      var to = fms[fr.stops[segIdx + 1]];
+      if (!from || !to) return;
+      function sName(m) { return encodeURIComponent(m.locationName || (m.tags||['?'])[0]); }
+      location.href = 'https://uri.amap.com/navigation?from=' + from.lng + ',' + from.lat + ',' + sName(from)
+        + '&to=' + to.lng + ',' + to.lat + ',' + sName(to) + '&mode=bus&policy=1';
     }
 
     function navigateSeg(routeId, segIdx) {
@@ -1979,7 +2013,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           routeBar.style.display = 'none';
         }
       }
-      if (routes.length === 0) {
+      if (routes.length === 0 && selectedFriends.size === 0) {
         listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px 16px;font-size:14px;">还没有规划路线<br><br>点击标记弹窗中的「🔗 连线」创建</div>';
         return;
       }
@@ -2000,7 +2034,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           return matchNote || matchStops;
         });
       }
-      if (sorted.length === 0) {
+      if (sorted.length === 0 && selectedFriends.size === 0) {
         listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:30px 16px;font-size:14px;">没有匹配的路线</div>';
         return;
       }
@@ -2035,6 +2069,25 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           + '<span>🕐 ' + formatTime(route.time) + '</span></div>'
           + '</div></div>';
       }).join('');
+
+      // 好友路线（紫色卡片）
+      var friendRouteHtml = '';
+      selectedFriends.forEach(function(fn) {
+        var frs = friendRoutes[fn] || [];
+        var fc = friendColors[fn] || '#8e44ad';
+        frs.forEach(function(fr) {
+          var fms = friendMarks[fn] || [];
+          var fnames = (fr.stops || []).map(function(i) { var m = fms[i]; return m ? escapeHtml(m.locationName || (m.tags||['?'])[0]) : '（未知）'; });
+          var fpathHtml = fnames.join(' → ');
+          friendRouteHtml += '<div class=\"route-card\" style=\"border-left-color:' + fc + ';opacity:0.9;\">'
+            + '<div class=\"card-body\" onclick=\"viewFriendRoute(\'' + fn + '\',' + fr.id + ')\">'
+            + '<span style=\"display:inline-block;background:' + fc + ';color:white;font-size:9px;padding:2px 6px;border-radius:3px;margin-bottom:4px;\">' + escapeHtml(fn) + '</span>'
+            + '<div class=\"route-path\"><span>' + fpathHtml + '</span></div>'
+            + '<div class=\"route-info\"><span>🛵 ' + (fr.stops||[]).length + ' 站</span></div>'
+            + '</div></div>';
+        });
+      });
+      listEl.innerHTML += friendRouteHtml;
     }
 
     function viewRoute(routeId) {
@@ -2315,6 +2368,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (!d.n || !d.m) return;
         friends[d.n] = code;
         if (d.a) friendAvatars[d.n] = d.a;
+        if (d.r && d.r.length > 0) friendRoutes[d.n] = d.r;
         if (!friendColors[d.n]) {
           var used = Object.values(friendColors);
           var next = FRIEND_PALETTE.find(function(c) { return used.indexOf(c) === -1; }) || FRIEND_PALETTE[Object.keys(friendColors).length % FRIEND_PALETTE.length];
@@ -2417,6 +2471,80 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       renderMarkerList();
     }
 
+    function viewFriendRoute(fn, routeId) {
+      var fr = (friendRoutes[fn] || []).find(function(r) { return r.id === routeId; });
+      if (!fr) return;
+      clearRouteLines();
+      var fms2 = friendMarks[fn] || [];
+      var stops = (fr.stops || []).map(function(i) { return fms2[i]; }).filter(Boolean);
+      if (stops.length < 2) return;
+      var lats = stops.map(function(m) { return [m.lat, m.lng]; });
+      map.fitBounds(L.latLngBounds(lats), { padding: [50, 50] });
+
+      var segColors = ['#2196F3','#e74c3c','#27ae60','#f39c12','#8e44ad','#00bcd4'];
+      var segCount = stops.length - 1;
+      var segDists = new Array(segCount).fill(null);
+
+      // 图例
+      var legend = L.control({ position: 'bottomleft' });
+      legend.onAdd = function() {
+        var d = L.DomUtil.create('div', '');
+        d.id = 'route-legend';
+        d.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;position:relative;"><button onclick="event.stopPropagation();clearRouteLines()" style="position:absolute;top:2px;right:4px;background:none;border:none;cursor:pointer;font-size:14px;color:#999;">×</button>'
+          + '<b>好友: ' + escapeHtml(fn) + '</b><br>' + buildLegendHtml(segDists, segColors, null, fn, fr.id) + '</div>';
+        return d;
+      };
+      legend.addTo(map);
+      _routeLegend = legend;
+
+      function updateLegend() {
+        var el = document.getElementById('route-legend');
+        if (el) el.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;position:relative;"><button onclick="event.stopPropagation();clearRouteLines()" style="position:absolute;top:2px;right:4px;background:none;border:none;cursor:pointer;font-size:14px;color:#999;">×</button>'
+          + '<b>好友: ' + escapeHtml(fn) + '</b><br>' + buildLegendHtml(segDists, segColors, null, fn, fr.id) + '</div>';
+      }
+
+      var totalWalkDist = 0, doneCount = 0;
+      for (var i = 0; i < segCount; i++) {
+        var a = stops[i], b = stops[i + 1];
+        if (!a || !b) { doneCount++; continue; }
+        var sc = segColors[i % segColors.length];
+
+        // 虚线
+        _connectLines.push(L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color: sc, weight: 2, dashArray: '8 6', opacity: 0.6 }).addTo(map));
+
+        // 箭头
+        var dLa = b.lat - a.lat, dLn = b.lng - a.lng;
+        var segLen = Math.sqrt(dLa * dLa + dLn * dLn);
+        if (segLen > 0.0001) {
+          var pLa = -dLn / segLen, pLn = dLa / segLen, hs = 0.0005;
+          [0.3, 0.7].forEach(function(t) {
+            var cx = a.lat + dLa * t, cy = a.lng + dLn * t;
+            var tip = [cx + dLa / segLen * hs, cy + dLn / segLen * hs];
+            var left = [cx - dLa / segLen * hs * 0.3 + pLa * hs * 0.7, cy - dLn / segLen * hs * 0.3 + pLn * hs * 0.7];
+            var right = [cx - dLa / segLen * hs * 0.3 - pLa * hs * 0.7, cy - dLn / segLen * hs * 0.3 - pLn * hs * 0.7];
+            _connectLines.push(L.polyline([left, tip, right], { color: sc, weight: 2.5, opacity: 0.8 }).addTo(map));
+          });
+        }
+
+        // 步行路径
+        (function(idx, from, to, color) {
+          fetchWalkRoute(from.lat, from.lng, to.lat, to.lng, function(result) {
+            doneCount++;
+            if (result && result.points.length > 0) {
+              totalWalkDist += result.distance;
+              segDists[idx] = result.distance;
+              updateLegend();
+              _connectLines.push(L.polyline(result.points, { color: color, weight: 4, opacity: 0.8 }).addTo(map));
+            } else {
+              segDists[idx] = 0;
+              updateLegend();
+            }
+          });
+        })(i, a, b, sc);
+      }
+      if (window.innerWidth <= 600) closeSidebar();
+    }
+
     function toggleFriend(name) {
       if (selectedFriends.has(name)) selectedFriends.delete(name);
       else selectedFriends.add(name);
@@ -2428,8 +2556,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     function loadAllFriendMarks() {
       Object.keys(friends).forEach(function(n) {
         try {
-          var d = JSON.parse(decodeURIComponent(escape(atob(friends[n]))));
+          var d = JSON.parse(decodeURIComponent(atob(friends[n]).split('').map(function(c){return '%'+c.charCodeAt(0).toString(16)}).join('')));
           friendMarks[n] = d.m || [];
+          if (d.r && d.r.length > 0) friendRoutes[n] = d.r;
         } catch(e) {}
       });
       updateFriendUI();

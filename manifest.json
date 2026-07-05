@@ -1,0 +1,15 @@
+{
+  "name": "地图笔记",
+  "short_name": "地图笔记",
+  "description": "地图标记与路线规划工具",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "icons": [{
+    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>",
+    "sizes": "100x100",
+    "type": "image/svg+xml"
+  }]
+}

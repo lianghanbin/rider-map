@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>骑手地图</title>
+  <title>地图笔记</title>
 
   <!-- ========== 引入地图库 Leaflet（本地文件，断网也能用） ========== -->
   <link rel="stylesheet" href="leaflet.css" />
@@ -818,7 +818,7 @@
     // ---------- 第零步：左侧面板 ----------
 if(window.innerWidth>600)document.getElementById('left-panel').classList.add('open');
 function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){closeLeftPanel();return;}p.classList.add('open');document.getElementById('overlay').classList.add('show');closeSidebar();}else{p.classList.toggle('open');}}
-function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show');}
 // ---------- 第一步：初始化地图 ----------
 
     const map = L.map('map').setView([31.23, 121.47], 12);
@@ -1031,7 +1031,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
             <button class="preset-add-btn" onclick="addTagPreset()" title="添加新预设">＋ 添加标签</button>
           </div>
           <label>备注描述（选填）</label>
-          <textarea id="popup-note" placeholder="例如：北门有电梯，步行3分钟到5号楼&#10;或者：所有门都无法骑车，必须电话联系客户"></textarea>
+          <textarea id="popup-note" placeholder="记下这个地点的信息…&#10;比如：从哪个门进、有什么注意事项"></textarea>
           <div class="btn-row">
             <button class="btn-cancel" onclick="cancelPendingMarker()">取消</button>
             <button class="btn-save" onclick="savePendingMarker()">✅ 保存标记</button>
@@ -1295,7 +1295,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (selectedMarkers.size > 0) {
           actionBar.style.display = 'flex';
           actionBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedMarkers.size + ' 项</span>'
-            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedMarkers()">🗑 删除选中</button>';
+            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedMarkers()">📤 分享选中</button>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedMarkers()">🗑 删除选中</button>'
+            + '<button class="clear-all-btn" onclick="selectAllMarkers()">☑ 全选</button>';
         } else {
           actionBar.style.display = 'none';
         }
@@ -1309,6 +1311,30 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         selectedMarkers.delete(index);
       }
       renderMarkerList();  // 刷新以更新 actionBar
+    }
+
+    function shareSelectedMarkers() {
+      if (selectedMarkers.size === 0) return;
+      var selMarks = [];
+      selectedMarkers.forEach(function(i) {
+        if (markers[i]) selMarks.push(markers[i]);
+      });
+      if (selMarks.length === 0) return;
+      var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: selMarks, r: [] });
+      var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
+      // 显示分享码
+      document.getElementById('share-result').style.display = 'block';
+      document.getElementById('share-code').value = code;
+      document.getElementById('share-code').select();
+      document.execCommand('copy');
+      alert('已复制 ' + selMarks.length + ' 个标记的分享码！');
+      selectedMarkers.clear();
+      renderMarkerList();
+    }
+
+    function selectAllMarkers() {
+      markers.forEach(function(m, i) { selectedMarkers.add(i); });
+      renderMarkerList();
     }
 
     function deleteSelectedMarkers() {
@@ -1377,12 +1403,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     // ---------- 第五步：交互操作 ----------
 
-    // 窄屏：点击地图空白处关闭左面板
     map.on('click', function(e) {
-      if (window.innerWidth <= 600 && document.getElementById('left-panel').classList.contains('open')) {
-        closeLeftPanel();
-        return;
-      }
       showMarkerForm(e.latlng.lat, e.latlng.lng, function(newMarker) {
         // 加上时间戳
         newMarker.time = Date.now();
@@ -1876,7 +1897,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (d) {
           html += '<span style="color:' + sc + ';">━━━━</span>'
             + ' <span style="color:#333;">' + (d / 1000).toFixed(1) + ' km</span>'
-            + ' <button onclick="navigateSeg(' + route.id + ',' + i + ')" style="background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">🚌</button><br>';
+            + ' <button onclick="event.stopPropagation();navigateSeg(' + route.id + ',' + i + ')" style="background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">🚌</button><br>';
           total += d;
         } else {
           html += '<span style="color:' + sc + ';">━━━━</span>'
@@ -1900,7 +1921,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var url = 'https://uri.amap.com/navigation?from='
         + from.lng + ',' + from.lat + ',' + sName(from)
         + '&to=' + to.lng + ',' + to.lat + ',' + sName(to)
-        + '&mode=transit';
+        + '&mode=bus&policy=1';
       location.href = url;
     }
 
@@ -1960,7 +1981,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (selectedRoutes.size > 0) {
           routeBar.style.display = 'flex';
           routeBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedRoutes.size + ' 项</span>'
-            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedRoutes()">🗑 删除选中</button>';
+            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedRoutes()">📤 分享选中</button>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedRoutes()">🗑 删除选中</button>'
+            + '<button class="clear-all-btn" onclick="selectAllRoutes()">☑ 全选</button>';
         } else {
           routeBar.style.display = 'none';
         }
@@ -2041,7 +2064,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       legend.onAdd = function() {
         var d = L.DomUtil.create('div', '');
         d.id = 'route-legend';
-        d.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
+        d.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;position:relative;"><button onclick="event.stopPropagation();clearRouteLines()" style="position:absolute;top:2px;right:4px;background:none;border:none;cursor:pointer;font-size:14px;color:#999;">×</button>'
           + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors, route) + '</div>';
         return d;
       };
@@ -2050,7 +2073,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
       function updateLegend() {
         var el = document.getElementById('route-legend');
-        if (el) el.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;">'
+        if (el) el.innerHTML = '<div style="background:white;padding:6px 10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:11px;line-height:1.8;min-width:120px;position:relative;"><button onclick="event.stopPropagation();clearRouteLines()" style="position:absolute;top:2px;right:4px;background:none;border:none;cursor:pointer;font-size:14px;color:#999">×</button>'
           + '<b>步行距离</b><br>' + buildLegendHtml(segDists, segColors, route) + '</div>';
       }
 
@@ -2147,6 +2170,25 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       renderRouteList();
     }
 
+    function selectAllRoutes() {
+      routes.forEach(function(r) { selectedRoutes.add(r.id); });
+      renderRouteList();
+    }
+
+    function shareSelectedRoutes() {
+      if (selectedRoutes.size === 0) return;
+      var selRoutes = routes.filter(function(r) { return selectedRoutes.has(r.id); });
+      var data = JSON.stringify({ n: myNickname, a: myAvatarUrl, m: [], r: selRoutes });
+      var code = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g,function(m,p){return String.fromCharCode('0x'+p)}));
+      document.getElementById('share-result').style.display = 'block';
+      document.getElementById('share-code').value = code;
+      document.getElementById('share-code').select();
+      document.execCommand('copy');
+      alert('已复制 ' + selRoutes.length + ' 条路线的分享码！');
+      selectedRoutes.clear();
+      renderRouteList();
+    }
+
     function deleteSelectedRoutes() {
       if (selectedRoutes.size === 0) return;
       if (!confirm('确定要删除选中的 ' + selectedRoutes.size + ' 条路线吗？\n\n此操作不可恢复！')) return;
@@ -2180,7 +2222,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     function closeSidebar() {
       document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('overlay').classList.remove('show');
+      if (!document.getElementById('left-panel').classList.contains('open')) document.getElementById('overlay').classList.remove('show');
       document.getElementById('hamburger-btn').classList.remove('hidden');
     }
 
@@ -2192,7 +2234,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     };
 
     // 在控制台打个招呼（按 F12 可以看到）
-    console.log('🛵 骑手地图已就绪！');
+    console.log('🛵 地图笔记已就绪！');
     console.log('已有标记：' + markers.length + ' 个');
 
     // ====== 好友分享系统 ======

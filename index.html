@@ -736,7 +736,7 @@
 
     <!-- 左侧个人面板 -->
     <div class="left-panel" id="left-panel">
-      <div class="ps" id="panel-content">
+      <div class="ps" id="panel-content" style="flex:1;overflow-y:auto;">
         <div id="profile-view">
           <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
             <button id="hide-own-btn" onclick="event.stopPropagation();toggleHideOwn()" style="position:absolute;top:0;right:0;background:#ddd;color:#666;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;">隐藏</button>
@@ -746,8 +746,8 @@
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
           <input type="text" id="my-nickname" placeholder="你的昵称" oninput="saveProfile()">
-          <button class="btn btn-gray" onclick="showAndCopyShareCode()">📤 复制分享码</button>
-          <div id="share-result" style="margin-top:4px;font-size:11px;color:#27ae60;display:none;">✅ 已复制</div>
+          <button class="btn btn-gray" onclick="showAndCopyShareCode()">复制分享码</button>
+          <div id="share-result" style="margin-top:4px;font-size:11px;color:#27ae60;display:none;">已复制</div>
           <hr style="margin:12px 0;border-color:#eee">
           <h3 style="font-size:14px;">好友笔记</h3>
           <div id="friend-list" style="font-size:12px;color:#999;">还没有好友笔记</div>
@@ -755,6 +755,9 @@
           <button class="btn btn-orange" onclick="importFriend()">添加好友笔记</button>
           <div class="msg" id="auth-msg"></div>
         </div>
+      </div>
+      <div style="padding:8px 16px 12px;border-top:1px solid #eee;flex-shrink:0;">
+        <button class="btn btn-orange" onclick="alert('感谢支持！')" style="font-size:12px;">❤️ 打赏作者</button>
       </div>
     </div>
 
@@ -768,7 +771,7 @@
     <div id="map">
       <!-- 连线模式提示条 -->
       <div class="connect-banner" id="connect-banner" onclick="event.stopPropagation()">
-        <span>🔗 连线模式：点击标记添加途经点</span>
+        <span>连线模式：点击标记添加途经点</span>
         <button onclick="event.stopPropagation();finishConnect()">✅ 完成</button>
         <button onclick="event.stopPropagation();cancelConnect()" style="background:rgba(255,255,255,0.2);">✕</button>
       </div>
@@ -779,8 +782,8 @@
     <!-- 右侧面板 / 手机版变成滑入覆盖层 -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <button class="sidebar-tab active" id="tab-markers" onclick="switchTab('markers')">📍 已标记地点</button>
-        <button class="sidebar-tab" id="tab-routes" onclick="switchTab('routes')">🔗 已规划路线</button>
+        <button class="sidebar-tab active" id="tab-markers" onclick="switchTab('markers')">已标记地点</button>
+        <button class="sidebar-tab" id="tab-routes" onclick="switchTab('routes')">已规划路线</button>
         <div style="display:flex;align-items:center;gap:8px;">
         </div>
       </div>
@@ -1030,11 +1033,12 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       }).join('');
 
       var tagChipsHtml2 = tagPresets.map(function(t) {
-        return '<span class=tag-chip onclick=event.stopPropagation();this.classList.toggle(\"selected\")>' + escapeHtml(t) + '</span>';
+        var safe = JSON.stringify(t);
+        return '<span class=tag-chip onclick=onPopupTagClick(this,'+safe+')>'+escapeHtml(t)+'</span>';
       }).join('');
       const popupContent = `
         <div class="popup-form">
-          <strong style="font-size:13px;">📍 标记这个地点</strong>
+          <strong style="font-size:13px;">标记这个地点</strong>
           <div id="popup-location" style="background:#f0f7ff;border-radius:4px;padding:4px 8px;margin-top:6px;font-size:11px;color:#2196F3;">
             ⏳ 正在识别位置…
           </div>
@@ -1044,13 +1048,13 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           <div style="display:flex;gap:4px;margin-top:4px;">
             <input id="popup-tag-new" placeholder="新标签" style="flex:1;font-size:10px;padding:3px 6px;border:1px solid #ddd;border-radius:12px;font-family:inherit;outline:none;min-width:0;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTagFromPopup();}">
             <button onclick="event.stopPropagation();addTagFromPopup()" style="font-size:9px;padding:3px 6px;border-radius:12px;border:1px solid #ddd;background:#f5f5f5;color:#888;cursor:pointer;flex-shrink:0;">＋ 添加</button>
-            <button id="popup-del-btn" onclick="event.stopPropagation();togglePopupDelMode()" style="font-size:9px;padding:3px 6px;border-radius:12px;border:1px solid #ddd;background:#f5f5f5;color:#bbb;cursor:pointer;flex-shrink:0;">🗑 删除</button>
+            <button id="popup-del-btn" onclick="event.stopPropagation();togglePopupDelMode()" style="font-size:9px;padding:3px 6px;border-radius:12px;border:1px solid #ddd;background:#f5f5f5;color:#bbb;cursor:pointer;flex-shrink:0;">删除</button>
           </div>
           <label>备注描述（选填）</label>
           <textarea id="popup-note" placeholder="记下这个地点的信息…&#10;比如：从哪个门进、有什么注意事项"></textarea>
           <div class="btn-row">
             <button class="btn-cancel" onclick="cancelPendingMarker()">取消</button>
-            <button class="btn-save" onclick="savePendingMarker()">✅ 保存标记</button>
+            <button class="btn-save" onclick="savePendingMarker()">保存标记</button>
           </div>
         </div>
       `;
@@ -1104,7 +1108,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var btn = document.getElementById('popup-del-btn');
       btn.style.background = popupDelMode ? '#e74c3c' : '#f5f5f5';
       btn.style.color = popupDelMode ? '#fff' : '#bbb';
-      btn.textContent = popupDelMode ? '删除中…' : '🗑 删除';
+      btn.textContent = popupDelMode ? '删除中…' : '删除';
     }
     function onPopupTagClick(el, t) {
       event.stopPropagation();
@@ -1137,7 +1141,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       panelDelMode = !panelDelMode;
       var btn = document.getElementById('tp-del-btn');
       btn.classList.toggle('active', panelDelMode);
-      btn.textContent = panelDelMode ? '删除中…' : '🗑 删除';
+      btn.textContent = panelDelMode ? '删除中…' : '删除';
     }
     function onPanelChipClick(el, tag) {
       event.stopPropagation();
@@ -1157,7 +1161,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         return '<div class=tp-chip data-tag='+safe+' onclick=onPanelChipClick(this,'+safe+')>'+escapeHtml(t)+'</div>';
       }).join('')
         + '<input class=tp-input id=tp-new placeholder=新标签 onkeydown=if(event.key==='+JSON.stringify('Enter')+'){event.stopPropagation();addTagFromPanel();}>'
-        + '<button class=\"tp-btn del\" id=\"tp-del-btn\" onclick=\"event.stopPropagation();togglePanelDelMode()\">' + (panelDelMode ? '删除中…' : '🗑 删除') + '</button>';
+        + '<button class=\"tp-btn del\" id=\"tp-del-btn\" onclick=\"event.stopPropagation();togglePanelDelMode()\">' + (panelDelMode ? '删除中…' : '删除') + '</button>';
     }
     function hideTagPanel() { var tp = document.getElementById('tag-panel'); if(tp) tp.classList.remove('show'); panelDelMode = false; }
     // ====== 标签面板结束 ======
@@ -1233,18 +1237,20 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
             <p style="margin-top:6px;color:#333;">${escapeHtml(markerData.note)}</p>
             <small style="color:#999;">${formatTime(markerData.time)}</small>
             <br>
+            <div style="display:flex;gap:4px;margin-top:6px;">
             <button onclick="connectFromPopup(${index}); map.closePopup();"
-                    style="margin-top:8px;padding:4px 8px;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;margin-right:2px;">
-              🔗 连线
+                    style="flex:1;padding:4px 0;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">
+              连线
             </button>
             <button onclick="map.closePopup(); setTimeout(function(){ editMarker(${index}); }, 50);"
-                    style="margin-top:8px;padding:4px 8px;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;margin-right:2px;">
-              ✏️ 编辑
+                    style="flex:1;padding:4px 0;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">
+              编辑
             </button>
             <button onclick="deleteMarkerByIndex(${index}); map.closePopup();"
-                    style="margin-top:8px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;">
-              🗑 删除
+                    style="flex:1;padding:4px 0;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;">
+              删除
             </button>
+            </div>
           </div>
         `);
       });
@@ -1379,8 +1385,8 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (selectedMarkers.size > 0) {
           actionBar.style.display = 'flex';
           actionBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedMarkers.size + ' 项</span>'
-            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedMarkers()">📤 分享选中</button>'
-            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedMarkers()">🗑 删除选中</button>'
+            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedMarkers()">分享选中</button>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedMarkers()">删除选中</button>'
             + '<button class="clear-all-btn" onclick="selectAllMarkers()">☑ 全选</button>';
         } else {
           actionBar.style.display = 'none';
@@ -1893,7 +1899,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       connectPath = [];
       editingRouteId = null;
       document.getElementById('connect-banner').classList.remove('show');
-      document.getElementById('connect-banner').querySelector('span').textContent = '🔗 连线模式：点击标记添加途经点';
+      document.getElementById('connect-banner').querySelector('span').textContent = '连线模式：点击标记添加途经点';
       clearRouteLines();
       renderMapMarkers();
     }
@@ -1915,7 +1921,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       connectPath = [];
       var banner = document.getElementById('connect-banner');
       banner.classList.remove('show');
-      banner.querySelector('span').textContent = '🔗 连线模式：点击标记添加途经点';
+      banner.querySelector('span').textContent = '连线模式：点击标记添加途经点';
       clearRouteLines();
       renderMapMarkers();
       renderRouteList();
@@ -2072,15 +2078,15 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (selectedRoutes.size > 0) {
           routeBar.style.display = 'flex';
           routeBar.innerHTML = '<span style="font-size:12px;color:#666;">已选 ' + selectedRoutes.size + ' 项</span>'
-            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedRoutes()">📤 分享选中</button>'
-            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedRoutes()">🗑 删除选中</button>'
+            + '<button class="clear-all-btn" style="background:#2196F3;color:#fff;border-color:#2196F3;" onclick="shareSelectedRoutes()">分享选中</button>'
+            + '<button class="clear-all-btn" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" onclick="deleteSelectedRoutes()">删除选中</button>'
             + '<button class="clear-all-btn" onclick="selectAllRoutes()">☑ 全选</button>';
         } else {
           routeBar.style.display = 'none';
         }
       }
       if (routes.length === 0 && selectedFriends.size === 0) {
-        listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px 16px;font-size:14px;">还没有规划路线<br><br>点击标记弹窗中的「🔗 连线」创建</div>';
+        listEl.innerHTML = '<div style="text-align:center;color:#bbb;padding:40px 16px;font-size:14px;">还没有规划路线<br><br>点击标记弹窗中的「连线」创建</div>';
         return;
       }
       // 搜索过滤
@@ -2340,7 +2346,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     };
 
     // 在控制台打个招呼（按 F12 可以看到）
-    console.log('🛵 地图笔记已就绪！');
+    console.log('地图笔记已就绪！');
     console.log('已有标记：' + markers.length + ' 个');
 
     // ====== 好友分享系统 ======
@@ -2659,9 +2665,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           });
           L.marker([fm.lat, fm.lng], { icon: fIcon, zIndexOffset: 50 }).addTo(map)
             .bindPopup('<div style=min-width:180px><b>好友: ' + name + '</b><div style=\"margin:4px 0\">' + ((fm.tags||['未分类']).map(function(t){return '<span style=\"display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:3px;background:#f3e5f5;color:#7b1fa2;\">'+escapeHtml(t)+'</span>';}).join('')) + '</div><p style=margin-top:4px;color:#333;font-size:12px>' + (fm.note||'') + '</p><small style=color:#999>' + (fm.locationName||'') + '</small><br>'
-            + '<button onclick=\"adoptAndConnect(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">🔗 连线</button>'
-            + '<button onclick=\"adoptAndEdit(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">✏️ 编辑</button>'
-            + '<button onclick=\"adoptAndDelete(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;\">🗑 删除</button>'
+            + '<button onclick=\"adoptAndConnect(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#2196F3;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">连线</button>'
+            + '<button onclick=\"adoptAndEdit(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#f39c12;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;margin-right:2px;\">编辑</button>'
+            + '<button onclick=\"adoptAndDelete(\'' + name + '\',' + fi + ');map.closePopup();\" style=\"margin-top:6px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;\">删除</button>'
             + '</div>');
         });
       });

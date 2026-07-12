@@ -680,8 +680,8 @@
     /* 左侧面板 */
     .left-panel{display:flex;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;border-right:1px solid #ddd}
     @media(max-width:600px){
-      .left-panel{display:none;position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;flex-direction:column;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none;transform:translateX(-100%);transition:transform .3s}
-      .left-panel.open{display:flex;transform:translateX(0)}
+      .left-panel{position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;display:flex;flex-direction:column;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none;transform:translateX(-100%);transition:transform .3s;pointer-events:none}
+      .left-panel.open{transform:translateX(0);pointer-events:auto}
     }
     .left-panel .ps{padding:16px;border-bottom:1px solid #eee}
     .left-panel h3{margin-bottom:12px;font-size:16px}
@@ -851,12 +851,11 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       localStorage.setItem('current-map-mode',currentMapMode);localStorage.setItem('current-map-id',currentMapId);rebuildMap()}
     function deleteCurrentMap(){if(!currentCustomMap)return;if(!confirm('删除地图「'+currentCustomMap.name+'」及其所有标记？'))return;markers=markers.filter(function(m){return m.mapId!==currentMapId});customMaps=customMaps.filter(function(m){return m.id!==currentMapId});localStorage.setItem('custom-maps',JSON.stringify(customMaps));localStorage.setItem('rider-markers',JSON.stringify(markers));currentMapMode='amap';currentMapId='';currentCustomMap=null;localStorage.setItem('current-map-mode','amap');localStorage.setItem('current-map-id','');location.reload()}
     function rebuildMap(){
-      if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.fitBounds([[0,0],[cm.h,cm.w]]);map.setMinZoom(-5);document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
+      if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.fitBounds([[0,0],[cm.h,cm.w]],{padding:[10,10]});map.setMinZoom(Math.max(-3,map.getZoom()-2));document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
       else if(currentMapMode==='amap'){location.reload()}
       var isCustom=currentMapMode==='custom';
       var lb=document.getElementById('locate-btn');if(lb)lb.style.display=isCustom?'none':'';
       document.getElementById('search-input').style.display=isCustom?'none':'';
-            document.getElementById('game-suggestions').classList.remove('show');document.getElementById('game-suggestions').style.display='none';
       document.querySelector('.search-box button').style.display=isCustom?'none':'';
       renderMapMarkers();renderMarkerList();renderMapSwitcher()}
     var _cmFileData=null;
@@ -873,7 +872,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     var _initId = localStorage.getItem('current-map-id') || '';
     var _initCm = _initId ? _initMaps.find(function(m){return m.id===_initId}) : null;
 
-    const map = L.map('map', { crs: (_initMode==='custom'&&_initCm) ? L.CRS.Simple : L.CRS.EPSG3857 }).setView([31.23, 121.47], 12);
+    const map = L.map('map', { crs: (_initMode==='custom'&&_initCm) ? L.CRS.Simple : L.CRS.EPSG3857, attributionControl: false }).setView([31.23, 121.47], 12);
 
     if (_initMode === 'custom' && _initCm) {
       L.imageOverlay(_initCm.url, [[0,0], [_initCm.h,_initCm.w]]).addTo(map);

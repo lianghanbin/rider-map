@@ -678,11 +678,10 @@
       white-space: nowrap;
     }
     /* 左侧面板 */
-    .left-panel{display:none;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;border-right:1px solid #ddd}
-    .left-panel.open{display:flex}
+    .left-panel{display:flex;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;border-right:1px solid #ddd}
     @media(max-width:600px){
-      .left-panel{position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;display:flex;transform:translateX(-100%);transition:transform .3s;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none}
-      .left-panel.open{transform:translateX(0)}
+      .left-panel{display:none;position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;flex-direction:column;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none;transform:translateX(-100%);transition:transform .3s}
+      .left-panel.open{display:flex;transform:translateX(0)}
     }
     .left-panel .ps{padding:16px;border-bottom:1px solid #eee}
     .left-panel h3{margin-bottom:12px;font-size:16px}
@@ -723,7 +722,8 @@
         onblur="setTimeout(function(){hideSuggestions()},200)"
         onfocus="showInputSuggestions()"
         autocomplete="off">
-      <button onclick="searchAddress()">🔍</button>
+      <button id="game-lib-btn" onclick="event.stopPropagation();filterGameMaps()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:4px;font-size:11px;padding:3px 6px;cursor:pointer;white-space:nowrap;display:inline-block;">地图库</button>
+      <div id="game-suggestions" style="display:none;position:absolute;top:100%;right:0;background:white;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:2000;max-height:300px;overflow-y:auto;width:260px;font-size:11px;color:#333;" onclick="event.stopPropagation()"></div>
       <select id="map-switcher" onchange="switchMapMode(this.value)" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:4px;font-size:11px;padding:3px 6px;font-family:inherit;outline:none;max-width:100px;cursor:pointer;">
         <option value="amap" style="color:#333;">高德地图</option>
       </select>
@@ -843,7 +843,6 @@
     // ============================================
 
     // ---------- 第零步：左侧面板 ----------
-if(window.innerWidth>600)document.getElementById('left-panel').classList.add('open');
 function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){closeLeftPanel();return;}p.classList.add('open');document.getElementById('overlay').classList.add('show');closeSidebar();}else{p.classList.toggle('open');}}
 function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show');}
 // ====== 地图切换系统 ======
@@ -852,6 +851,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       if(val==='__new__'){document.getElementById('map-form-overlay').style.display='block';renderMapSwitcher();return}
       if(val==='amap'){currentMapMode='amap';currentMapId='';currentCustomMap=null}else{currentMapMode='custom';currentMapId=val;currentCustomMap=customMaps.find(function(m){return m.id===val})}
       localStorage.setItem('current-map-mode',currentMapMode);localStorage.setItem('current-map-id',currentMapId);rebuildMap()}
+    var _gameMaps=[{"game":"艾尔登法环","name":"宁姆格福全图","url":"https://eldenring.wiki.fextralife.com/file/Elden-Ring/elden-ring-npc-map.jpg","tags":["开放世界","Boss","赐福"]},{"game":"艾尔登法环","name":"湖之利耶尼亚","url":"https://eldenring.wiki.fextralife.com/file/Elden-Ring/liurnia-lake-map.jpg","tags":["开放世界","魔法学院"]},{"game":"艾尔登法环","name":"盖利德全图","url":"https://eldenring.wiki.fextralife.com/file/Elden-Ring/caelid-map.jpg","tags":["开放世界","猩红腐败"]}];
+    function filterGameMaps(){var sug=document.getElementById('game-suggestions');if(sug.classList.contains('show')){sug.classList.remove('show');sug.style.display='none';return}var html='';var curG='';_gameMaps.forEach(function(m){if(m.game!==curG){curG=m.game;html+='<div style=padding:6px 10px;font-weight:600;color:#1a1a2e;font-size:11px;>'+escapeHtml(curG)+'</div>'}html+='<div style=padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid #f0f0f0;' + ' onmousedown=useGameMap('+JSON.stringify(m.name)+','+JSON.stringify(m.url)+')>' + escapeHtml(m.name)+'</div>'});sug.innerHTML=html;sug.style.display='block';sug.classList.add('show')}
+    function useGameMap(name,url){document.getElementById('game-suggestions').classList.remove('show');document.getElementById('game-suggestions').style.display='none';var cm={id:Date.now().toString(),name:name,url:url,w:0,h:0};var im=new Image();im.onload=function(){cm.w=im.width;cm.h=im.height;if(cm.w>4096||cm.h>4096){var s=Math.min(4096/cm.w,4096/cm.h);cm.w=Math.round(cm.w*s);cm.h=Math.round(cm.h*s);var c=document.createElement('canvas');c.width=cm.w;c.height=cm.h;c.getContext('2d').drawImage(im,0,0,cm.w,cm.h);cm.url=c.toDataURL('image/jpeg',0.8)}customMaps.push(cm);localStorage.setItem('custom-maps',JSON.stringify(customMaps));currentMapMode='custom';currentMapId=cm.id;currentCustomMap=cm;localStorage.setItem('current-map-mode','custom');localStorage.setItem('current-map-id',cm.id);rebuildMap();renderMapSwitcher()};im.src=url}
     function deleteCurrentMap(){if(!currentCustomMap)return;if(!confirm('删除地图「'+currentCustomMap.name+'」及其所有标记？'))return;markers=markers.filter(function(m){return m.mapId!==currentMapId});customMaps=customMaps.filter(function(m){return m.id!==currentMapId});localStorage.setItem('custom-maps',JSON.stringify(customMaps));localStorage.setItem('rider-markers',JSON.stringify(markers));currentMapMode='amap';currentMapId='';currentCustomMap=null;localStorage.setItem('current-map-mode','amap');localStorage.setItem('current-map-id','');location.reload()}
     function rebuildMap(){
       if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.fitBounds([[0,0],[cm.h,cm.w]]);map.setMinZoom(-5);document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
@@ -859,6 +861,8 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       var isCustom=currentMapMode==='custom';
       var lb=document.getElementById('locate-btn');if(lb)lb.style.display=isCustom?'none':'';
       document.getElementById('search-input').style.display=isCustom?'none':'';
+      document.getElementById('game-lib-btn').style.display=isCustom?'':'none';
+      document.getElementById('game-suggestions').classList.remove('show');document.getElementById('game-suggestions').style.display='none';
       document.querySelector('.search-box button').style.display=isCustom?'none':'';
       renderMapMarkers();renderMarkerList();renderMapSwitcher()}
     var _cmFileData=null;
@@ -884,6 +888,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       document.getElementById('search-input').style.display = 'none';
       document.querySelector('.search-box button').style.display = 'none';
       var lb2 = document.getElementById('locate-btn'); if (lb2) lb2.style.display = 'none';
+      var glb = document.getElementById('game-lib-btn'); if (glb) glb.style.display = '';
     } else {
       L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
         subdomains: ['1', '2', '3', '4'],
@@ -1664,7 +1669,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       }
       var url = 'https://restapi.amap.com/v3/assistant/inputtips?key=' + AMAP_KEY
         + '&keywords=' + encodeURIComponent(query)
-        + '&city=上海&output=json';
+        + '&output=json';
 
       fetch(url)
         .then(function(res) { return res.json(); })

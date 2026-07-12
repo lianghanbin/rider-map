@@ -851,7 +851,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       localStorage.setItem('current-map-mode',currentMapMode);localStorage.setItem('current-map-id',currentMapId);rebuildMap()}
     function deleteCurrentMap(){if(!currentCustomMap)return;if(!confirm('删除地图「'+currentCustomMap.name+'」及其所有标记？'))return;markers=markers.filter(function(m){return m.mapId!==currentMapId});customMaps=customMaps.filter(function(m){return m.id!==currentMapId});localStorage.setItem('custom-maps',JSON.stringify(customMaps));localStorage.setItem('rider-markers',JSON.stringify(markers));currentMapMode='amap';currentMapId='';currentCustomMap=null;localStorage.setItem('current-map-mode','amap');localStorage.setItem('current-map-id','');location.reload()}
     function rebuildMap(){
-      if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.fitBounds([[0,0],[cm.h,cm.w]],{padding:[10,10]});map.setMinZoom(Math.max(-3,map.getZoom()-2));document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
+      if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.options.minZoom=-Infinity;map.fitBounds([[0,0],[cm.h,cm.w]],{padding:[10,10]});document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
       else if(currentMapMode==='amap'){location.reload()}
       var isCustom=currentMapMode==='custom';
       var lb=document.getElementById('locate-btn');if(lb)lb.style.display=isCustom?'none':'';
@@ -876,8 +876,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
     if (_initMode === 'custom' && _initCm) {
       L.imageOverlay(_initCm.url, [[0,0], [_initCm.h,_initCm.w]]).addTo(map);
-      map.fitBounds([[0,0], [_initCm.h,_initCm.w]]);
-      map.setMinZoom(-5);
+      map.options.minZoom=-Infinity;map.fitBounds([[0,0], [_initCm.h,_initCm.w]]);
       document.getElementById('search-input').style.display = 'none';
       document.querySelector('.search-box button').style.display = 'none';
       var lb2 = document.getElementById('locate-btn'); if (lb2) lb2.style.display = 'none';

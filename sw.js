@@ -1,9 +1,11 @@
-var CACHE = 'map-notes-v1';
+var CACHE = 'map-notes-v2';
 var FILES = [
   './index.html',
   './leaflet.js',
   './leaflet.css',
-  './manifest.json'
+  './manifest.json',
+  './config.js',
+  './reward.jpg'
 ];
 
 self.addEventListener('install', function(e) {

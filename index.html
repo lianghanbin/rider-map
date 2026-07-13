@@ -7,7 +7,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="地图笔记">
   <link rel="manifest" href="manifest.json">
-  <title>地图笔记</title>
+  <title>地图笔记 - 在地图上标记生活</title>
+
+  <!-- Open Graph：分享到微信/QQ/Twitter 时显示的卡片 -->
+  <meta property="og:title" content="地图笔记 - 在地图上标记生活">
+  <meta property="og:description" content="点一下地图，记录你去过的每个地方。数据存本地，隐私无忧，断网也能用。">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
 
   <!-- ========== 引入地图库 Leaflet（本地文件，断网也能用） ========== -->
   <link rel="stylesheet" href="leaflet.css" />
@@ -824,7 +830,7 @@
       <div style="padding:8px 16px 12px;border-top:1px solid #eee;flex-shrink:0;">
         <div style="display:flex;gap:4px;">
           <button class="btn btn-orange" onclick="document.getElementById('reward-popup').style.display='flex'" style="flex:1;font-size:12px;">👍 打赏</button>
-          <button class="btn btn-gray" onclick="location.href='mailto:lianghanbin47@outlook.com?subject=地图笔记反馈'" style="flex:1;font-size:11px;">反馈</button>
+          <button class="btn btn-gray" onclick="location.href='mailto:lianghanbin47@outlook.com?subject='+encodeURIComponent('地图笔记反馈（请列举不喜欢这款软件的原因，你的批判对我也很有帮助）')" style="flex:1;font-size:11px;">反馈</button>
         </div>
       </div>
     </div>
@@ -2848,7 +2854,8 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
 
 <div id="reward-popup" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999999;align-items:center;justify-content:center;">
   <div onclick="event.stopPropagation()" style="background:white;border-radius:12px;padding:24px;text-align:center;max-width:300px;">
-    <h3 style="margin-bottom:12px;">感谢支持</h3>
+    <h3 style="margin-bottom:8px;">感谢支持</h3>
+    <p style="font-size:12px;color:#666;margin-bottom:12px;">非常感谢你对我赞许</p>
     <img src="reward.jpg" alt="赞赏码" style="width:200px;height:200px;object-fit:contain;border-radius:8px;">
     <p style="font-size:11px;color:#999;margin-top:8px;">保存图片到相册，用微信扫一扫</p>
     <button onclick="document.getElementById('reward-popup').style.display='none'" style="margin-top:8px;padding:8px 20px;background:#eee;border:none;border-radius:6px;cursor:pointer;">关闭</button>

@@ -4,18 +4,13 @@ on:
   push:
     branches: [master]
 
-# 给工作流写入权限，才能部署到 GitHub Pages
+# peaceiris/actions-gh-pages 需要 contents: write 权限
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -23,11 +18,14 @@ jobs:
       - name: 注入高德 Key
         run: echo "var AMAP_KEY = '${{ secrets.AMAP_KEY }}';" > config.js
 
-      - name: 上传到 GitHub Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
+      - name: 确认 config.js 已生成
+        run: cat config.js
 
-      - name: 部署
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: 部署到 gh-pages 分支
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: '.'
+          publish_branch: gh-pages
+          # 排除 .github 目录，不部署工作流文件
+          exclude_assets: '.github/**,.gitignore,.git'

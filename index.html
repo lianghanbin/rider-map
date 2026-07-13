@@ -493,7 +493,7 @@
       color: white;
     }
     .btn-save:hover {
-      background: #0f3460;
+      filter: brightness(1.15);
     }
     .btn-cancel {
       background: #eee;
@@ -678,7 +678,7 @@
       white-space: nowrap;
     }
     /* 左侧面板 */
-    .left-panel{display:flex;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;border-right:1px solid #ddd}
+    .left-panel{display:flex;width:280px;background:#f8f8f8;flex-direction:column;overflow-y:auto;overflow-x:hidden;border-right:1px solid #ddd}
     @media(max-width:600px){
       .left-panel{position:absolute;top:0;left:0;width:85%;max-width:320px;height:100%;z-index:1100;display:flex;flex-direction:column;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3);border-right:none;transform:translateX(-100%);transition:transform .3s;pointer-events:none}
       .left-panel.open{transform:translateX(0);pointer-events:auto}
@@ -714,7 +714,7 @@
   <!-- ===== 顶部标题 ===== -->
   <div class="header">
     <button class="hamburger-header" id="hb-header" onclick="openSidebar()" style="display:none;position:absolute;right:16px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:4px;cursor:pointer;font-size:16px;padding:4px 8px;">☰</button>
-<button class="user-btn" id="user-btn" onclick="toggleAuth()" style="position:absolute;left:16px;display:inline-block;">👤</button><input type="color" id="theme-color" value="#1a1a2e" onchange="setThemeColor(this.value)" style="position:absolute;left:54px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:0;background:transparent;">
+<button class="user-btn" id="user-btn" onclick="toggleAuth()" style="position:absolute;left:16px;display:inline-block;">👤</button>
         <div class="search-box">
       <input type="text" id="search-input" placeholder="搜索地址…"
         oninput="showInputSuggestions()"
@@ -727,6 +727,14 @@
       </select>
       <button id="del-map-btn" onclick="deleteCurrentMap()" style="display:none;background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.3);border-radius:4px;cursor:pointer;font-size:10px;padding:3px 6px;">✕</button>
       <div class="search-suggestions" id="search-suggestions"></div>
+      <div id="reward-popup" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+        <div onclick="event.stopPropagation()" style="background:white;border-radius:12px;padding:24px;text-align:center;max-width:300px;">
+          <h3 style="margin-bottom:12px;">感谢支持</h3>
+          <img src="reward.jpg" alt="赞赏码" style="width:200px;height:200px;object-fit:contain;border-radius:8px;">
+          <p style="font-size:11px;color:#999;margin-top:8px;">保存图片到相册，用微信/支付宝扫一扫</p>
+          <button onclick="document.getElementById('reward-popup').style.display='none'" style="margin-top:8px;padding:8px 20px;background:#eee;border:none;border-radius:6px;cursor:pointer;">关闭</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -750,12 +758,14 @@
 
     <!-- 左侧个人面板 -->
     <div class="left-panel" id="left-panel">
-      <div class="ps" id="panel-content" style="flex:1;overflow-y:auto;">
-        <div id="profile-view">
+      <div class="ps" id="panel-content" style="flex:1;overflow-y:auto;overflow-x:hidden;">
+        <div id="profile-view" style="overflow-x:hidden;">
           <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;padding:8px;border-radius:10px;transition:all .2s;background:var(--tc);color:var(--tct);" id="profile-card" onclick="toggleHideOwn()" title="点击切换标记显示/隐藏">
             <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--tc);display:none;" onclick="event.stopPropagation();document.getElementById('avatar-file').click()">
             <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:var(--tc);color:var(--tct);font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;" onclick="event.stopPropagation();document.getElementById('avatar-file').click()"></div>
             <div style="font-size:10px;color:var(--tct);opacity:0.7;margin-top:4px;">点击头像换图 · 点卡片隐藏标记</div>
+            <div onclick="document.getElementById('theme-color').click()" style="position:absolute;right:8px;top:8px;width:24px;height:24px;border:2px solid #fff;border-radius:50%;cursor:pointer;background:var(--tc);"></div>
+            <input type="color" id="theme-color" value="#1a1a2e" onchange="setThemeColor(this.value)" style="position:absolute;opacity:0;pointer-events:none;">
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
           <input type="text" id="my-nickname" placeholder="你的昵称" oninput="saveProfile()">
@@ -776,7 +786,10 @@
         </div>
       </div>
       <div style="padding:8px 16px 12px;border-top:1px solid #eee;flex-shrink:0;">
-        <button class="btn btn-orange" onclick="alert('感谢支持！')" style="font-size:12px;">❤️ 打赏作者</button>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-orange" onclick="document.getElementById('reward-popup').style.display='flex'" style="flex:1;font-size:12px;">❤️ 打赏</button>
+          <button class="btn btn-gray" onclick="location.href='mailto:lianghanbin47@outlook.com?subject=地图笔记反馈'" style="flex:1;font-size:11px;">反馈</button>
+        </div>
       </div>
     </div>
 
@@ -1610,11 +1623,10 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
         if (noteEl) noteEl.value = m.note || '';
         // 预填位置名
         pendingLocationName = m.locationName || '';
-        var locEl = document.getElementById('popup-location');
-        if (locEl && m.locationName) {
-          locEl.innerHTML = '📍 ' + escapeHtml(m.locationName);
-          locEl.style.color = '#333';
-          locEl.style.background = '#e8f5e9';
+        var locInput = document.getElementById('popup-loc-input');
+        if (locInput && m.locationName) {
+          locInput.value = m.locationName;
+          locInput.style.background = '#e8f5e9';
         }
       }, 100);
     }
@@ -2399,7 +2411,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     }
 
     // ---------- 第十一步：手机端滑动手势 ----------
-    var _touchStartX=0,_touchStartY=0;
+    var _touchStartX=0;
     document.addEventListener('touchstart',function(e){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY},{passive:true});
     document.addEventListener('touchend',function(e){
       if(window.innerWidth>600)return;

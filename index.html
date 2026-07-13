@@ -42,12 +42,12 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: #1a1a2e;
+      background: var(--tc);
     }
 
     /* ===== 顶部标题栏 ===== */
     .header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background: var(--tc);
       color: white;
       padding: 10px 20px;
       font-size: 18px;
@@ -205,7 +205,7 @@
     }
     .sidebar-tab:hover { background: #e4e7eb; }
     .sidebar-tab.active {
-      background: #1a1a2e;
+      background: var(--tc);
       color: white;
       font-weight: 600;
     }
@@ -234,7 +234,7 @@
     }
 
     .sidebar-header .count {
-      background: #1a1a2e;
+      background: var(--tc);
       color: white;
       border-radius: 12px;
       padding: 2px 10px;
@@ -273,11 +273,11 @@
       transition: all 0.2s;
       color: #555;
     }
-    .tag-filter-btn:hover { border-color: #1a1a2e; color: #1a1a2e; }
+    .tag-filter-btn:hover { border-color: var(--tc); color: var(--tc); }
     .tag-filter-btn.active {
-      background: #1a1a2e;
+      background: var(--tc);
       color: white;
-      border-color: #1a1a2e;
+      border-color: var(--tc);
       font-weight: 600;
     }
     .sidebar-search {
@@ -293,7 +293,7 @@
       outline: none;
     }
     .sidebar-search input:focus {
-      border-color: #1a1a2e;
+      border-color: var(--tc);
     }
     .toolbar-actions {
       padding: 0 10px 8px;
@@ -363,7 +363,7 @@
       width: 18px;
       height: 18px;
       cursor: pointer;
-      accent-color: #1a1a2e;
+      accent-color: var(--tc);
       margin: 0;
       flex-shrink: 0;
     }
@@ -458,7 +458,7 @@
     }
     .preset-chip:hover { background:#e8eaed; border-color:#d0d3d7; }
     .preset-chip.selected {
-      background:#1a1a2e; color:white; font-weight:600; border-color:#1a1a2e;
+      background:var(--tc); color:white; font-weight:600; border-color:var(--tc);
     }
     .preset-del {
       font-size:16px; width:24px; height:24px; padding:0; margin-left:6px;
@@ -473,7 +473,7 @@
       border-radius:16px; background:transparent; cursor:pointer;
       color:#999; font-weight:500; transition:all .15s;
     }
-    .preset-add-btn:hover { border-color:#1a1a2e; color:#1a1a2e; background:#f8f8f9; }
+    .preset-add-btn:hover { border-color:var(--tc); color:var(--tc); background:#f8f8f9; }
     .popup-form .btn-row {
       display: flex;
       gap: 8px;
@@ -489,7 +489,7 @@
       font-weight: bold;
     }
     .btn-save {
-      background: #1a1a2e;
+      background: var(--tc);
       color: white;
     }
     .btn-save:hover {
@@ -687,24 +687,24 @@
     .left-panel h3{margin-bottom:12px;font-size:16px}
     .left-panel input{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit}
     .left-panel .btn{width:100%;padding:10px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:6px}
-    .btn-orange{background:#1a1a2e;color:#fff}
+    .btn-orange{background:var(--tc);color:#fff}
     .btn-gray{background:#eee;color:#333}
     .left-panel .msg{font-size:12px;color:#e74c3c;text-align:center;min-height:18px}
     .left-panel .stat-row{display:flex;gap:8px}
     .left-panel .stat-card{flex:1;background:#fff;border-radius:8px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .left-panel .stat-card .num{font-size:24px;font-weight:700;color:#1a1a2e}
+    .left-panel .stat-card .num{font-size:24px;font-weight:700;color:var(--tc)}
     .left-panel .stat-card .label{font-size:11px;color:#999;margin-top:4px}
     .tag-panel{display:none;position:absolute;z-index:1100;background:white;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:8px;width:110px;max-height:320px;overflow-y:auto;left:5px;top:60px}
     .tag-panel.show{display:flex;flex-direction:column;gap:2px}
     .tag-panel .tp-chip{font-size:10px;padding:4px 6px;border-radius:10px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;text-align:center;transition:all .12s;user-select:none}
-    .tag-panel .tp-chip.selected{background:#1a1a2e;color:white;border-color:#1a1a2e;font-weight:600}
-    .tag-panel .tp-chip:hover{border-color:#1a1a2e}
+    .tag-panel .tp-chip.selected{background:var(--tc);color:white;border-color:var(--tc);font-weight:600}
+    .tag-panel .tp-chip:hover{border-color:var(--tc)}
     .tag-panel .tp-input{font-size:10px;padding:4px 6px;border:1px solid #ddd;border-radius:10px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;margin-top:4px}
     .tag-panel .tp-btn{font-size:10px;padding:3px 6px;border-radius:10px;cursor:pointer;border:1px solid #ddd;background:#f5f5f5;color:#888;text-align:center;margin-top:2px;transition:all .12s}
     .tag-panel .tp-btn.del{color:#bbb}
     .tag-panel .tp-btn.del.active{background:#e74c3c;color:white;border-color:#e74c3c}
     .tag-chip{display:inline-block;font-size:10px;padding:3px 8px;border-radius:12px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap;flex-shrink:0;transition:all .12s;user-select:none}
-    .tag-chip.selected{background:#1a1a2e;color:white;border-color:#1a1a2e;font-weight:600}
+    .tag-chip.selected{background:var(--tc);color:white;border-color:var(--tc);font-weight:600}
     .leaflet-popup-content{width:auto !important; min-width:160px !important; max-width:220px !important;}
   </style>
 </head>
@@ -744,7 +744,7 @@
       </div>
       <div style="display:flex;gap:8px;">
         <button onclick="document.getElementById('map-form-overlay').style.display='none';renderMapSwitcher()" style="flex:1;padding:10px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:14px;">取消</button>
-        <button onclick="createCustomMap()" style="flex:1;padding:10px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">创建</button>
+        <button onclick="createCustomMap()" style="flex:1;padding:10px;background:var(--tc);color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">创建</button>
       </div>
     </div>
 
@@ -752,15 +752,23 @@
     <div class="left-panel" id="left-panel">
       <div class="ps" id="panel-content" style="flex:1;overflow-y:auto;">
         <div id="profile-view">
-          <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;" onclick="document.getElementById('avatar-file').click()" title="点击更换头像">
-            <button id="hide-own-btn" onclick="event.stopPropagation();toggleHideOwn()" style="position:absolute;top:0;right:0;background:#ddd;color:#666;border:none;border-radius:3px;cursor:pointer;font-size:10px;padding:1px 6px;">隐藏</button>
-            <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #1a1a2e;display:none;">
-            <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:#1a1a2e;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;"></div>
-            <div style="font-size:10px;color:#999;margin-top:4px;">点击更换头像</div>
+          <div style="text-align:center;margin-bottom:8px;cursor:pointer;position:relative;padding:8px;border-radius:10px;transition:all .2s;background:var(--tc);color:#fff;" id="profile-card" onclick="toggleHideOwn()" title="点击切换标记显示/隐藏">
+            <img id="my-avatar-img" src="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--tc);display:none;" onclick="event.stopPropagation();document.getElementById('avatar-file').click()">
+            <div id="my-avatar-txt" style="width:64px;height:64px;border-radius:50%;background:var(--tc);color:white;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:bold;" onclick="event.stopPropagation();document.getElementById('avatar-file').click()"></div>
+            <div style="font-size:10px;color:#999;margin-top:4px;">点击头像换图 · 点卡片隐藏标记</div>
           </div>
           <input type="file" id="avatar-file" accept="image/*" onchange="uploadAvatar()" style="display:none;">
           <input type="text" id="my-nickname" placeholder="你的昵称" oninput="saveProfile()">
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+            <label style="font-size:11px;color:#999;cursor:pointer;">主题色 <input type="color" id="theme-color" value="#1a1a2e" onchange="setThemeColor(this.value)" style="width:24px;height:24px;border:none;cursor:pointer;vertical-align:middle;"></label>
+          </div>
           <button class="btn btn-gray" onclick="showAndCopyShareCode()">复制分享码</button>
+          <button class="btn btn-gray" onclick="if(confirm('注销将清除昵称和头像，确定？')){localStorage.removeItem('rider-nickname');localStorage.removeItem('rider-avatar');location.reload()}" style="font-size:11px;color:#999;">注销</button>
+          <div style="display:flex;gap:4px;margin-top:4px;">
+            <button class="btn btn-gray" onclick="exportAllData()" style="flex:1;font-size:11px;">导出数据</button>
+            <button class="btn btn-gray" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:11px;">导入数据</button>
+            <input type="file" id="import-file" accept=".json" onchange="importAllData()" style="display:none;">
+          </div>
           <div id="share-result" style="margin-top:4px;font-size:11px;color:#27ae60;display:none;">已复制</div>
           <hr style="margin:12px 0;border-color:#eee">
           <h3 style="font-size:14px;">好友笔记</h3>
@@ -844,11 +852,17 @@
 function toggleAuth(){var p=document.getElementById('left-panel');var w=window.innerWidth<=600;if(w){if(p.classList.contains('open')){closeLeftPanel();return;}p.classList.add('open');document.getElementById('overlay').classList.add('show');closeSidebar();}else{p.classList.toggle('open');}}
 function closeLeftPanel(){document.getElementById('left-panel').classList.remove('open');if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show');}
 // ====== 地图切换系统 ======
-    function renderMapSwitcher(){var s=document.getElementById('map-switcher');if(!s||!customMaps)return;s.innerHTML='<option value=amap style=color:#333>高德地图</option>';customMaps.forEach(function(m){s.innerHTML+='<option value='+m.id+' style=color:#333>'+escapeHtml(m.name)+'</option>'});s.innerHTML+='<option value=__new__ style=color:#1a1a2e>＋ 新建地图</option>';if(currentMapMode==='custom')s.value=currentMapId;var db=document.getElementById('del-map-btn');if(db)db.style.display=currentMapMode==='custom'?'':'none'}
+    function renderMapSwitcher(){var s=document.getElementById('map-switcher');if(!s||!customMaps)return;s.innerHTML='<option value=amap style=color:#333>高德地图</option>';customMaps.forEach(function(m){s.innerHTML+='<option value='+m.id+' style=color:#333>'+escapeHtml(m.name)+'</option>'});s.innerHTML+='<option value=__new__ style=color:var(--tc)>＋ 新建地图</option>';if(currentMapMode==='custom')s.value=currentMapId;var db=document.getElementById('del-map-btn');if(db)db.style.display=currentMapMode==='custom'?'':'none'}
     function switchMapMode(val){
       if(val==='__new__'){document.getElementById('map-form-overlay').style.display='block';renderMapSwitcher();return}
       if(val==='amap'){currentMapMode='amap';currentMapId='';currentCustomMap=null}else{currentMapMode='custom';currentMapId=val;currentCustomMap=customMaps.find(function(m){return m.id===val})}
       localStorage.setItem('current-map-mode',currentMapMode);localStorage.setItem('current-map-id',currentMapId);rebuildMap()}
+    function exportAllData(){var d={markers:markers,routes:routes,customMaps:customMaps,tagPresets:tagPresets,friends:friends,friendMarks:friendMarks,friendRoutes:friendRoutes,avatar:localStorage.getItem('rider-avatar')||'',nickname:localStorage.getItem('rider-nickname')||''};var blob=new Blob([JSON.stringify(d)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='map-notes-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();alert('数据已导出')}
+    function importAllData(){var f=document.getElementById('import-file').files[0];if(!f)return;if(!confirm('导入将覆盖当前数据，确定？')){document.getElementById('import-file').value='';return}var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.markers)markers=d.markers;if(d.routes)routes=d.routes;if(d.customMaps)customMaps=d.customMaps;if(d.tagPresets)tagPresets=d.tagPresets;if(d.friends)friends=d.friends;if(d.friendMarks)friendMarks=d.friendMarks;if(d.friendRoutes)friendRoutes=d.friendRoutes;if(d.avatar)localStorage.setItem('rider-avatar',d.avatar);if(d.nickname)localStorage.setItem('rider-nickname',d.nickname);localStorage.setItem('rider-markers',JSON.stringify(markers));localStorage.setItem('rider-routes',JSON.stringify(routes));localStorage.setItem('custom-maps',JSON.stringify(customMaps));localStorage.setItem('rider-tag-presets',JSON.stringify(tagPresets));localStorage.setItem('rider-friends',JSON.stringify(friends));alert('导入成功，刷新页面生效');location.reload()}catch(e){alert('文件格式错误')}};r.readAsText(f)}
+    var themeColor=localStorage.getItem('theme-color')||'#1a1a2e';
+    function setThemeColor(c){themeColor=c;localStorage.setItem('theme-color',c);document.documentElement.style.setProperty('--tc',c);var el=document.getElementById('theme-color');if(el)el.value=c;updateProfileUI()}
+    document.documentElement.style.setProperty('--tc',themeColor);
+    document.getElementById('theme-color').value=themeColor;
     function deleteCurrentMap(){if(!currentCustomMap)return;if(!confirm('删除地图「'+currentCustomMap.name+'」及其所有标记？'))return;markers=markers.filter(function(m){return m.mapId!==currentMapId});customMaps=customMaps.filter(function(m){return m.id!==currentMapId});localStorage.setItem('custom-maps',JSON.stringify(customMaps));localStorage.setItem('rider-markers',JSON.stringify(markers));currentMapMode='amap';currentMapId='';currentCustomMap=null;localStorage.setItem('current-map-mode','amap');localStorage.setItem('current-map-id','');location.reload()}
     function rebuildMap(){
       if(currentMapMode==='custom'&&currentCustomMap){var cm=currentCustomMap;map.eachLayer(function(l){map.removeLayer(l)});map.options.crs=L.CRS.Simple;map.eachLayer(function(l){if(l instanceof L.TileLayer)map.removeLayer(l)});if(window._customImgLayer)map.removeLayer(window._customImgLayer);window._customImgLayer=L.imageOverlay(cm.url,[[0,0],[cm.h,cm.w]]).addTo(map);map.options.minZoom=-Infinity;map.fitBounds([[0,0],[cm.h,cm.w]],{padding:[10,10]});document.getElementById('search-input').style.display='none';document.querySelector('.search-box button').style.display='none'}
@@ -1414,7 +1428,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       // 好友标记从左侧面板选中后在地图显示
 
       // 好友选中时在列表追加好友标记
-      if (selectedFriends.size > 0) {
+      if (selectedFriends.size > 0 && currentMapMode === 'amap') {
         var friendHtml = '';
         selectedFriends.forEach(function(fn) {
           var fms = friendMarks[fn] || [];
@@ -2385,7 +2399,20 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
       clearRouteLines();
     }
 
-    // ---------- 第十一步：手机端侧边栏开关 ----------
+    // ---------- 第十一步：手机端滑动手势 ----------
+    var _touchStartX=0,_touchStartY=0;
+    document.addEventListener('touchstart',function(e){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY},{passive:true});
+    document.addEventListener('touchend',function(e){
+      if(window.innerWidth>600)return;
+      var dx=e.changedTouches[0].clientX-_touchStartX;
+      var dy=e.changedTouches[0].clientY-_touchStartY;
+      if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>60){
+        if(dx>0&&_touchStartX<40){toggleAuth()}  // 左边缘右滑→左面板
+        if(dx<0&&_touchStartX>window.innerWidth-40){openSidebar()}  // 右边缘左滑→右面板
+      }
+    },{passive:true});
+
+    // ---------- 第十二步：手机端侧边栏开关 ----------
 
     function openSidebar() {
       var s = document.getElementById('sidebar');
@@ -2707,8 +2734,9 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
     var hideOwnMarkers = false;
     function toggleHideOwn() {
       hideOwnMarkers = !hideOwnMarkers;
-      var btn = document.getElementById('hide-own-btn');
-      if (btn) btn.textContent = hideOwnMarkers ? '显示' : '隐藏';
+      var card = document.getElementById('profile-card');
+      if (card) card.style.background = hideOwnMarkers ? '' : 'var(--tc)';
+      if (card) card.style.color = hideOwnMarkers ? '' : '#fff';
       renderMapMarkers();
       renderMarkerList();
     }
@@ -2722,6 +2750,7 @@ function closeLeftPanel(){document.getElementById('left-panel').classList.remove
           }
         });
       }
+      if (currentMapMode !== 'amap') return;
       selectedFriends.forEach(function(name) {
         if (!friendMarks[name]) return;
         var fc = friendColors[name] || '#8e44ad';

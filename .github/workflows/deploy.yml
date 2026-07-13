@@ -33,6 +33,9 @@ jobs:
       - name: 确认生成文件
         run: ls -la config.js && cat config.js
 
+      - name: 从 .gitignore 中移除 config.js（否则部署时会被跳过）
+        run: grep -v '^config\.js$' .gitignore > .gitignore.tmp && mv .gitignore.tmp .gitignore
+
       - name: 配置 GitHub Pages
         uses: actions/configure-pages@v4
 
